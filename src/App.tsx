@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthScreen } from '@/pages/auth/AuthScreen';
+import { LandingPage } from '@/pages/landing/LandingPage';
 import { GlassNav } from '@/components/layout/GlassNav';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ModulesPage } from '@/pages/dashboard/ModulesPage';
@@ -8,7 +9,7 @@ import { ResponseEditorPage } from '@/pages/dashboard/ResponseEditorPage';
 import { supabase } from '@/lib/supabase';
 import './App.css';
 
-type Page = 'dashboard' | 'modules' | 'evidence' | 'audits' | 'settings' | 'module-detail' | 'response-editor';
+type Page = 'landing' | 'auth' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'settings' | 'module-detail' | 'response-editor';
 
 interface PageParams {
   moduleId?: string;
@@ -19,7 +20,7 @@ interface PageParams {
 function App() {
   const [session, setSession] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
-  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [currentPage, setCurrentPage] = useState<Page>('landing');
   const [pageParams, setPageParams] = useState<PageParams>({});
   const [loading, setLoading] = useState(true);
 
@@ -130,6 +131,14 @@ function App() {
   }
 
   if (!session) {
+    if (currentPage === 'landing') {
+      return (
+        <LandingPage
+          onGetStarted={() => setCurrentPage('auth')}
+          onSignIn={() => setCurrentPage('auth')}
+        />
+      );
+    }
     return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
   }
 
