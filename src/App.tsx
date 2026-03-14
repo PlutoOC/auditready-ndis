@@ -1,48 +1,159 @@
-import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase"
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { AuthScreen } from '@/pages/auth/AuthScreen';
+import { GlassNav } from '@/components/layout/GlassNav';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
+import { ModulesPage } from '@/pages/dashboard/ModulesPage';
+import { ResponseEditorPage } from '@/pages/dashboard/ResponseEditorPage';
+import { supabase } from '@/lib/supabase';
+import './App.css';
 
-function App() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full">
-        <div className="backdrop-blur-xl bg-white/70 dark:bg-slate-900/70 rounded-3xl border border-white/20 dark:border-slate-700/50 shadow-2xl p-8 md:p-12 text-center">
-          <div className="mb-6">
-            <div className="w-20 h-20 mx-auto bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl flex items-center justify-center shadow-lg mb-6">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent mb-4">
-              AuditReady NDIS
-            </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-              Internal audit and self-assessment tool for NDIS providers
-            </p>
-          </div>
-          
-          <div className="space-y-4">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Streamline your compliance with the NDIS Practice Standards
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button size="lg" className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white px-8">
-                Get Started
-              </Button>
-              <Button size="lg" variant="outline" className="border-slate-300 dark:border-slate-600">
-                Learn More
-              </Button>
-            </div>
-          </div>
+type Page = 'dashboard' | 'modules' | 'evidence' | 'audits' | 'settings' | 'module-detail' | 'response-editor';
 
-          <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
-            <p className="text-xs text-slate-400 dark:text-slate-500">
-              Supabase connection: {supabase ? '✅ Connected' : '❌ Failed'}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+interface PageParams {
+  moduleId?: string;
+  outcomeId?: string;
+  qiId?: string;
 }
 
-export default App
+function App() {
+  const [session, setSession] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const [pageParams, setPageParams] = useState<PageParams>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleAuthSuccess = () => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setCurrentPage('dashboard');
+  };
+
+  const handleNavigate = (page: string, params?: PageParams) => {
+    setCurrentPage(page as Page);
+    if (params) {
+      setPageParams(params);
+    } else {
+      setPageParams({});
+    }
+  };
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return <DashboardPage onNavigate={handleNavigate} />;
+      case 'modules':
+        return <ModulesPage onNavigate={handleNavigate} />;
+      case 'module-detail':
+        return <ModulesPage onNavigate={handleNavigate} />;
+      case 'response-editor':
+        if (pageParams.moduleId && pageParams.outcomeId && pageParams.qiId) {
+          return (
+            <ResponseEditorPage
+              moduleId={pageParams.moduleId}
+              outcomeId={pageParams.outcomeId}
+              qiId={pageParams.qiId}
+              onNavigate={handleNavigate}
+            />
+          );
+        }
+        return <ModulesPage onNavigate={handleNavigate} />;
+      case 'evidence':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Evidence Management</h1>
+              <p className="mt-2 text-slate-600 dark:text-slate-400">Coming soon...</p>
+            </div>
+          </div>
+        );
+      case 'audits':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Internal Audits</h1>
+              <p className="mt-2 text-slate-600 dark:text-slate-400">Coming soon...</p>
+            </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
+              <p className="mt-2 text-slate-600 dark:text-slate-400">Coming soon...</p>
+            </div>
+          </div>
+        );
+      default:
+        return <DashboardPage onNavigate={handleNavigate} />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full"
+        />
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  return (
+    <div className="min-h-screen">
+      <GlassNav
+        user={user}
+        onLogout={handleLogout}
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
+      />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentPage}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          {renderPage()}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+export default App;
