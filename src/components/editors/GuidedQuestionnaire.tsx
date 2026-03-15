@@ -161,6 +161,7 @@ export const GuidedQuestionnaire: React.FC<GuidedQuestionnaireProps> = ({
   const [generatedResponse, setGeneratedResponse] = useState(existingResponse || '');
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [customizationConfirmed, setCustomizationConfirmed] = useState(false);
 
   const handleAnswerChange = (questionId: number, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
@@ -194,23 +195,71 @@ export const GuidedQuestionnaire: React.FC<GuidedQuestionnaireProps> = ({
             <h3 className="text-lg font-semibold">Generated Response</h3>
           </div>
           
+          {/* AI Generated Notice */}
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                  AI-Generated Response
+                </h4>
+                <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                  This response was generated based on your answers. Please review and customize it to accurately reflect your organization's specific practices and policies.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 mb-4">
             <textarea
               value={generatedResponse}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setGeneratedResponse(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                setGeneratedResponse(e.target.value);
+              }}
               className="w-full h-64 p-3 bg-transparent border-0 resize-none focus:ring-0 text-sm leading-relaxed"
               placeholder="Generated response will appear here..."
             />
           </div>
 
+          {/* Customization Checkbox */}
+          <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 mb-4">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={customizationConfirmed}
+                onChange={(e) => setCustomizationConfirmed(e.target.checked)}
+                className="mt-1 w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+              />
+              <div>
+                <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  I have reviewed and customized this response
+                </span>
+                <p className="text-sm text-slate-500 mt-1">
+                  I confirm that I have reviewed the AI-generated content and made necessary modifications to ensure it accurately represents my organization's practices. I understand that I am responsible for the accuracy of this submission.
+                </p>
+              </div>
+            </label>
+          </div>
+
           <div className="flex gap-3">
-            <GlassButton onClick={handleUseResponse} variant="primary">
+            <GlassButton 
+              onClick={handleUseResponse} 
+              variant="primary"
+              disabled={!customizationConfirmed}
+              title={!customizationConfirmed ? "Please confirm you have reviewed and customized this response" : ""}
+            >
               Use This Response
             </GlassButton>
             <GlassButton onClick={() => setShowPreview(false)} variant="outline">
               Edit Answers
             </GlassButton>
           </div>
+          
+          {!customizationConfirmed && (
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+              ⚠️ Please check the box above to confirm you have reviewed and customized this response before using it.
+            </p>
+          )}
         </GlassCard>
 
         <div className="text-sm text-slate-500">
