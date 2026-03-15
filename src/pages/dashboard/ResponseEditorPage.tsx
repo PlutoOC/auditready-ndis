@@ -126,12 +126,14 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
       setQi(qiData);
 
       // Fetch existing response
-      const { data: responseData } = await supabase
-        .from('self_assessment_responses')
-        .select('*')
-        .eq('quality_indicator_id', qiId)
-        .eq('organization_id', orgData?.id)
-        .single();
+      const { data: responseData } = orgData?.id
+        ? await supabase
+            .from('self_assessment_responses')
+            .select('*')
+            .eq('quality_indicator_id', qiId)
+            .eq('organization_id', orgData.id)
+            .single()
+        : { data: null };
 
       if (responseData) {
         setResponse({

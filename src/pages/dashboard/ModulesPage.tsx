@@ -96,12 +96,14 @@ const ModulesPage: React.FC<ModulesPageProps> = ({ onNavigate }) => {
                 // Get response status for each QI
                 const qisWithStatus = await Promise.all(
                   (qisData || []).map(async (qi: QualityIndicator) => {
-                    const { data: responseData } = await supabase
-                      .from('self_assessment_responses')
-                      .select('status')
-                      .eq('quality_indicator_id', qi.id)
-                      .eq('organization_id', orgData?.id)
-                      .single();
+                    const { data: responseData } = orgData?.id
+                      ? await supabase
+                          .from('self_assessment_responses')
+                          .select('status')
+                          .eq('quality_indicator_id', qi.id)
+                          .eq('organization_id', orgData.id)
+                          .single()
+                      : { data: null };
 
                     return {
                       ...qi,

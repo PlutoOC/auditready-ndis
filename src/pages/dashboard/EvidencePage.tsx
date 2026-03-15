@@ -74,12 +74,14 @@ const EvidencePage: React.FC = () => {
       setOrganization(orgData);
 
       // Fetch evidence files
-      const { data: filesData } = await supabase
-        .from('evidence_files')
-        .select('*')
-        .eq('organization_id', orgData?.id)
-        .eq('is_active', true)
-        .order('uploaded_at', { ascending: false });
+      const { data: filesData } = orgData?.id
+        ? await supabase
+            .from('evidence_files')
+            .select('*')
+            .eq('organization_id', orgData.id)
+            .eq('is_active', true)
+            .order('uploaded_at', { ascending: false })
+        : { data: [] };
 
       if (filesData) {
         setFiles(filesData);
