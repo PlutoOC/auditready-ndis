@@ -3,36 +3,36 @@ import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 const glassCardVariants = cva(
-  // Base styles
-  'relative overflow-hidden transition-all duration-300 ease-out',
+  // Base styles - enhanced with smooth transitions and subtle glassmorphism
+  'relative overflow-hidden transition-all duration-200 ease-out will-change-transform',
   {
     variants: {
       variant: {
         default: [
           'bg-white/70 dark:bg-slate-900/70',
-          'backdrop-blur-[20px]',
-          'border border-white/50 dark:border-white/10',
-          'shadow-[0_8px_32px_rgba(0,0,0,0.12)]',
-          'dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]',
+          'backdrop-blur-[10px]',
+          'border border-white/30 dark:border-white/10',
+          'shadow-[0_8px_32px_rgba(0,0,0,0.1)]',
+          'dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)]',
         ],
         subtle: [
-          'bg-white/50 dark:bg-slate-900/50',
-          'backdrop-blur-[12px]',
-          'border border-white/30 dark:border-white/5',
-          'shadow-[0_4px_16px_rgba(0,0,0,0.08)]',
+          'bg-white/60 dark:bg-slate-900/60',
+          'backdrop-blur-[8px]',
+          'border border-white/25 dark:border-white/5',
+          'shadow-[0_4px_20px_rgba(0,0,0,0.08)]',
         ],
         strong: [
-          'bg-white/85 dark:bg-slate-900/85',
-          'backdrop-blur-[30px]',
-          'border border-white/60 dark:border-white/15',
-          'shadow-[0_12px_40px_rgba(0,0,0,0.15)]',
-          'dark:shadow-[0_12px_40px_rgba(0,0,0,0.5)]',
+          'bg-white/80 dark:bg-slate-900/80',
+          'backdrop-blur-[12px]',
+          'border border-white/40 dark:border-white/15',
+          'shadow-[0_12px_40px_rgba(0,0,0,0.12)]',
+          'dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)]',
         ],
         frosted: [
-          'bg-white/90 dark:bg-slate-900/90',
-          'backdrop-blur-[40px] saturate-[220%]',
-          'border border-white/70 dark:border-white/20',
-          'shadow-[0_16px_48px_rgba(0,0,0,0.18)]',
+          'bg-white/85 dark:bg-slate-900/85',
+          'backdrop-blur-[16px] saturate-[180%]',
+          'border border-white/50 dark:border-white/20',
+          'shadow-[0_16px_48px_rgba(0,0,0,0.15)]',
         ],
       },
       padding: {
@@ -50,7 +50,12 @@ const glassCardVariants = cva(
         '2xl': 'rounded-[2rem]',
       },
       hover: {
-        true: 'hover:translate-y-[-4px] hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] cursor-pointer',
+        true: [
+          'hover:translate-y-[-4px]',
+          'hover:shadow-[0_16px_48px_rgba(0,0,0,0.15)]',
+          'dark:hover:shadow-[0_16px_48px_rgba(0,0,0,0.5)]',
+          'cursor-pointer',
+        ],
         false: '',
       },
       interactive: {
@@ -73,6 +78,7 @@ export interface GlassCardProps
     VariantProps<typeof glassCardVariants> {
   children: React.ReactNode;
   innerHighlight?: boolean;
+  glowOnHover?: boolean;
 }
 
 const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
@@ -86,6 +92,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
       hover,
       interactive,
       innerHighlight = true,
+      glowOnHover = false,
       ...props
     },
     ref
@@ -97,6 +104,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
           glassCardVariants({ variant, padding, radius, hover, interactive }),
           innerHighlight &&
             'before:absolute before:inset-0 before:rounded-inherit before:pointer-events-none before:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6)] dark:before:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]',
+          glowOnHover && 'hover:shadow-[0_0_40px_rgba(99,102,241,0.3)] dark:hover:shadow-[0_0_40px_rgba(99,102,241,0.2)]',
           className
         )}
         {...props}

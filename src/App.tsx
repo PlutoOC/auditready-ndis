@@ -2,19 +2,24 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthScreen } from '@/pages/auth/AuthScreen';
 import { LandingPage } from '@/pages/landing/LandingPage';
+import { SetupPage } from '@/pages/setup/SetupPage';
 import { GlassNav } from '@/components/layout/GlassNav';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ModulesPage } from '@/pages/dashboard/ModulesPage';
 import { ResponseEditorPage } from '@/pages/dashboard/ResponseEditorPage';
+import { EvidencePage } from '@/pages/dashboard/EvidencePage';
+import { AuditsPage } from '@/pages/dashboard/AuditsPage';
+import { SettingsPage } from '@/pages/Settings';
 import { supabase } from '@/lib/supabase';
 import './App.css';
 
-type Page = 'landing' | 'auth' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'settings' | 'module-detail' | 'response-editor';
+type Page = 'landing' | 'auth' | 'setup' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'settings' | 'module-detail' | 'response-editor';
 
 interface PageParams {
   moduleId?: string;
   outcomeId?: string;
   qiId?: string;
+  authMode?: 'login' | 'signup';
 }
 
 function App() {
@@ -23,13 +28,20 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>('landing');
   const [pageParams, setPageParams] = useState<PageParams>({});
   const [loading, setLoading] = useState(true);
+  const [needsSetup, setNeedsSetup] = useState(false);
 
   useEffect(() => {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      
+      // Check if user needs setup
+      if (session?.user) {
+        checkUserSetup(session.user.id);
+      } else {
+        setLoading(false);
+      }
     });
 
     // Listen for auth changes
@@ -38,23 +50,65 @@ function App() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        checkUserSetup(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  const checkUserSetup = async (userId: string) => {
+    try {
+      const { data: userData } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', userId)
+        .single();
+
+      if (!userData?.org_id) {
+        setNeedsSetup(true);
+        setCurrentPage('setup');
+      } else {
+        setNeedsSetup(false);
+      }
+    } catch (error) {
+      console.error('Error checking user setup:', error);
+      setNeedsSetup(true);
+      setCurrentPage('setup');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAuthSuccess = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      if (session?.user) {
+        checkUserSetup(session.user.id);
+      }
     });
+  };
+
+  const handleSetupComplete = async () => {
+    // Force re-check user setup to verify org_id is properly set
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await checkUserSetup(user.id);
+    }
+    
+    // If setup check passed, navigate to dashboard
+    setCurrentPage('dashboard');
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
     setUser(null);
-    setCurrentPage('dashboard');
+    setNeedsSetup(false);
+    setCurrentPage('landing');
   };
 
   const handleNavigate = (page: string, params?: PageParams) => {
@@ -68,6 +122,8 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'setup':
+        return <SetupPage onComplete={handleSetupComplete} />;
       case 'dashboard':
         return <DashboardPage onNavigate={handleNavigate} />;
       case 'modules':
@@ -87,32 +143,11 @@ function App() {
         }
         return <ModulesPage onNavigate={handleNavigate} />;
       case 'evidence':
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Evidence Management</h1>
-              <p className="mt-2 text-slate-600 dark:text-slate-400">Coming soon...</p>
-            </div>
-          </div>
-        );
+        return <EvidencePage />;
       case 'audits':
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Internal Audits</h1>
-              <p className="mt-2 text-slate-600 dark:text-slate-400">Coming soon...</p>
-            </div>
-          </div>
-        );
+        return <AuditsPage />;
       case 'settings':
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
-              <p className="mt-2 text-slate-600 dark:text-slate-400">Coming soon...</p>
-            </div>
-          </div>
-        );
+        return <SettingsPage />;
       default:
         return <DashboardPage onNavigate={handleNavigate} />;
     }
@@ -134,12 +169,41 @@ function App() {
     if (currentPage === 'landing') {
       return (
         <LandingPage
-          onGetStarted={() => setCurrentPage('auth')}
-          onSignIn={() => setCurrentPage('auth')}
+          onGetStarted={() => {
+            setPageParams({ authMode: 'signup' });
+            setCurrentPage('auth');
+          }}
+          onSignIn={() => {
+            setPageParams({ authMode: 'login' });
+            setCurrentPage('auth');
+          }}
         />
       );
     }
-    return <AuthScreen onAuthSuccess={handleAuthSuccess} />;
+    return (
+      <AuthScreen
+        onAuthSuccess={handleAuthSuccess}
+        onBackToLanding={() => setCurrentPage('landing')}
+        initialMode={pageParams.authMode || 'login'}
+      />
+    );
+  }
+
+  // Show setup page if user needs to complete organization setup
+  if (needsSetup && currentPage === 'setup') {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="setup"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          <SetupPage onComplete={handleSetupComplete} />
+        </motion.div>
+      </AnimatePresence>
+    );
   }
 
   return (

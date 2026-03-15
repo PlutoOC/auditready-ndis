@@ -1,0 +1,554 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Upload,
+  FileText,
+  Image,
+  FileSpreadsheet,
+  File as FileIcon,
+  X,
+  Check,
+  Search,
+  Filter,
+  Trash2,
+  Link as LinkIcon,
+} from 'lucide-react';
+import { GlassCard } from '@/components/glass/GlassCard';
+import { GlassButton } from '@/components/glass/GlassButton';
+import { GlassInput } from '@/components/glass/GlassInput';
+import { FileUploadZone } from '@/components/glass/FileUploadZone';
+import { supabase } from '@/lib/supabase';
+
+interface EvidenceFile {
+  id: string;
+  filename: string;
+  file_type: string;
+  file_size: number;
+  category: string;
+  description: string;
+  uploaded_at: string;
+  uploaded_by: string;
+  storage_path: string;
+}
+
+interface QualityIndicator {
+  id: string;
+  code: string;
+  text: string;
+}
+
+const EVIDENCE_CATEGORIES = [
+  { value: 'policy', label: 'Policy', color: 'bg-blue-100 text-blue-700' },
+  { value: 'procedure', label: 'Procedure', color: 'bg-emerald-100 text-emerald-700' },
+  { value: 'training_record', label: 'Training Record', color: 'bg-amber-100 text-amber-700' },
+  { value: 'form', label: 'Form/Template', color: 'bg-purple-100 text-purple-700' },
+  { value: 'report', label: 'Report', color: 'bg-rose-100 text-rose-700' },
+  { value: 'other', label: 'Other', color: 'bg-slate-100 text-slate-700' },
+];
+
+const EvidencePage: React.FC = () => {
+  const [files, setFiles] = useState<EvidenceFile[]>([]);
+  const [qualityIndicators, setQualityIndicators] = useState<QualityIndicator[]>([]);
+  const [showUploadZone, setShowUploadZone] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<EvidenceFile | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [mappedQIs, setMappedQIs] = useState<Record<string, string[]>>({});
+  const [organization, setOrganization] = useState<any>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: orgData } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('owner_id', user.id)
+        .single();
+      
+      setOrganization(orgData);
+
+      // Fetch evidence files
+      const { data: filesData } = await supabase
+        .from('evidence_files')
+        .select('*')
+        .eq('organization_id', orgData?.id)
+        .eq('is_active', true)
+        .order('uploaded_at', { ascending: false });
+
+      if (filesData) {
+        setFiles(filesData);
+      }
+
+      // Fetch quality indicators for mapping
+      const { data: qiData } = await supabase
+        .from('quality_indicators')
+        .select('id, code, text');
+
+      if (qiData) {
+        setQualityIndicators(qiData);
+      }
+
+      // Fetch existing mappings
+      const { data: mappingsData } = await supabase
+        .from('evidence_qi_mappings')
+        .select('evidence_file_id, quality_indicator_id');
+
+      if (mappingsData) {
+        const mappings: Record<string, string[]> = {};
+        mappingsData.forEach((m: any) => {
+          if (!mappings[m.evidence_file_id]) {
+            mappings[m.evidence_file_id] = [];
+          }
+          mappings[m.evidence_file_id].push(m.quality_indicator_id);
+        });
+        setMappedQIs(mappings);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const handleFilesSelected = useCallback(async (selectedFiles: File[]) => {
+    if (!organization) return;
+    
+    for (const file of selectedFiles) {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${organization.id}/${fileName}`;
+
+        // Upload to storage
+        const { error: uploadError } = await supabase.storage
+          .from('evidence-files')
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          continue;
+        }
+
+        // Create database record
+        const { data: evidenceData, error: dbError } = await supabase
+          .from('evidence_files')
+          .insert([{
+            organization_id: organization.id,
+            filename: file.name,
+            storage_path: filePath,
+            file_type: file.type,
+            file_size: file.size,
+            category: 'other',
+            uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          }])
+          .select()
+          .single();
+
+        if (dbError) {
+          console.error('Database error:', dbError);
+          continue;
+        }
+
+        setFiles(prev => [evidenceData, ...prev]);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    }
+
+    setShowUploadZone(false);
+  }, [organization]);
+
+  const handleDeleteFile = async (fileId: string) => {
+    const file = files.find(f => f.id === fileId);
+    if (!file) return;
+
+    try {
+      // Delete from storage
+      await supabase.storage
+        .from('evidence-files')
+        .remove([file.storage_path]);
+
+      // Soft delete in database
+      await supabase
+        .from('evidence_files')
+        .update({ is_active: false })
+        .eq('id', fileId);
+
+      setFiles(prev => prev.filter(f => f.id !== fileId));
+      if (selectedFile?.id === fileId) {
+        setSelectedFile(null);
+      }
+    } catch (error) {
+      console.error('Error deleting file:', error);
+    }
+  };
+
+  const handleMapToQI = async (fileId: string, qiId: string) => {
+    try {
+      const isMapped = mappedQIs[fileId]?.includes(qiId);
+
+      if (isMapped) {
+        // Remove mapping
+        await supabase
+          .from('evidence_qi_mappings')
+          .delete()
+          .eq('evidence_file_id', fileId)
+          .eq('quality_indicator_id', qiId);
+
+        setMappedQIs(prev => ({
+          ...prev,
+          [fileId]: prev[fileId]?.filter(id => id !== qiId) || []
+        }));
+      } else {
+        // Add mapping
+        await supabase
+          .from('evidence_qi_mappings')
+          .insert([{
+            evidence_file_id: fileId,
+            quality_indicator_id: qiId,
+          }]);
+
+        setMappedQIs(prev => ({
+          ...prev,
+          [fileId]: [...(prev[fileId] || []), qiId]
+        }));
+      }
+    } catch (error) {
+      console.error('Error mapping to QI:', error);
+    }
+  };
+
+  const handleUpdateCategory = async (fileId: string, category: string) => {
+    try {
+      await supabase
+        .from('evidence_files')
+        .update({ category })
+        .eq('id', fileId);
+
+      setFiles(prev => prev.map(f => 
+        f.id === fileId ? { ...f, category } : f
+      ));
+    } catch (error) {
+      console.error('Error updating category:', error);
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith('image/')) return <Image className="w-5 h-5" />;
+    if (fileType.includes('pdf')) return <FileText className="w-5 h-5" />;
+    if (fileType.includes('spreadsheet') || fileType.includes('excel')) return <FileSpreadsheet className="w-5 h-5" />;
+    return <FileIcon className="w-5 h-5" />;
+  };
+
+  const filteredFiles = files.filter(file => {
+    const matchesSearch = file.filename.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || file.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                Evidence Management
+              </h1>
+              <p className="mt-2 text-slate-600 dark:text-slate-400">
+                Upload and manage evidence files, map them to Quality Indicators
+              </p>
+            </div>
+            <GlassButton
+              variant="primary"
+              leftIcon={<Upload className="w-4 h-4" />}
+              onClick={() => setShowUploadZone(!showUploadZone)}
+            >
+              {showUploadZone ? 'Cancel' : 'Upload Evidence'}
+            </GlassButton>
+          </div>
+        </motion.div>
+
+        {/* Upload Zone */}
+        <AnimatePresence>
+          {showUploadZone && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8"
+            >
+              <FileUploadZone
+                onFilesSelected={handleFilesSelected}
+                accept="*/*"
+                multiple
+                label="Drop evidence files here or click to browse"
+                sublabel="All file types accepted up to 50MB"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <GlassCard variant="subtle" padding="md" radius="lg">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <GlassInput
+                  placeholder="Search files..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  leftIcon={<Search className="w-4 h-4" />}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-slate-400" />
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="h-11 px-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                >
+                  <option value="all">All Categories</option>
+                  {EVIDENCE_CATEGORIES.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        {/* File List */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        >
+          {/* Files Grid */}
+          <div className="lg:col-span-2 space-y-4">
+            {filteredFiles.length === 0 ? (
+              <GlassCard variant="subtle" padding="xl" radius="xl" className="text-center">
+                <Upload className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+                  No evidence files yet
+                </h3>
+                <p className="text-slate-500 dark:text-slate-400 mb-4">
+                  Upload your first evidence file to get started
+                </p>
+                <GlassButton
+                  variant="secondary"
+                  onClick={() => setShowUploadZone(true)}
+                >
+                  Upload File
+                </GlassButton>
+              </GlassCard>
+            ) : (
+              filteredFiles.map((file) => {
+                const category = EVIDENCE_CATEGORIES.find(c => c.value === file.category);
+                const fileMappings = mappedQIs[file.id] || [];
+                
+                return (
+                  <GlassCard
+                    key={file.id}
+                    variant={selectedFile?.id === file.id ? 'strong' : 'subtle'}
+                    padding="md"
+                    radius="lg"
+                    hover
+                    interactive
+                    onClick={() => setSelectedFile(selectedFile?.id === file.id ? null : file)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                        {getFileIcon(file.file_type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {file.filename}
+                          </h4>
+                          {category && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${category.color}`}>
+                              {category.label}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-500 mt-1">
+                          {formatFileSize(file.file_size)} • {new Date(file.uploaded_at).toLocaleDateString()}
+                        </p>
+                        {fileMappings.length > 0 && (
+                          <div className="flex items-center gap-1 mt-2">
+                            <LinkIcon className="w-3 h-3 text-indigo-500" />
+                            <span className="text-xs text-indigo-600 dark:text-indigo-400">
+                              Mapped to {fileMappings.length} Quality Indicator{fileMappings.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <GlassButton
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteFile(file.id);
+                          }}
+                          className="text-rose-500 hover:text-rose-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </GlassButton>
+                      </div>
+                    </div>
+                  </GlassCard>
+                );
+              })
+            )}
+          </div>
+
+          {/* Details Panel */}
+          <div className="lg:col-span-1">
+            <AnimatePresence mode="wait">
+              {selectedFile ? (
+                <motion.div
+                  key="details"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                >
+                  <GlassCard variant="default" padding="lg" radius="xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                        File Details
+                      </h3>
+                      <GlassButton
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setSelectedFile(null)}
+                      >
+                        <X className="w-4 h-4" />
+                      </GlassButton>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Filename</p>
+                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100 break-all">
+                          {selectedFile.filename}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Size</p>
+                          <p className="text-sm text-slate-900 dark:text-slate-100">
+                            {formatFileSize(selectedFile.file_size)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Type</p>
+                          <p className="text-sm text-slate-900 dark:text-slate-100">
+                            {selectedFile.file_type || 'Unknown'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-slate-500 mb-1">Category</p>
+                        <select
+                          value={selectedFile.category}
+                          onChange={(e) => handleUpdateCategory(selectedFile.id, e.target.value)}
+                          className="w-full h-10 px-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                        >
+                          {EVIDENCE_CATEGORIES.map(cat => (
+                            <option key={cat.value} value={cat.value}>{cat.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                        <p className="text-xs text-slate-500 mb-2">Map to Quality Indicators</p>
+                        <div className="max-h-64 overflow-y-auto space-y-2">
+                          {qualityIndicators.map((qi) => {
+                            const isMapped = mappedQIs[selectedFile.id]?.includes(qi.id);
+                            return (
+                              <div
+                                key={qi.id}
+                                onClick={() => handleMapToQI(selectedFile.id, qi.id)}
+                                className={`p-2 rounded-lg cursor-pointer transition-colors ${
+                                  isMapped 
+                                    ? 'bg-indigo-100 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800' 
+                                    : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                                }`}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <div className={`w-4 h-4 rounded border flex items-center justify-center mt-0.5 ${
+                                    isMapped 
+                                      ? 'bg-indigo-500 border-indigo-500' 
+                                      : 'border-slate-300 dark:border-slate-600'
+                                  }`}>
+                                    {isMapped && <Check className="w-3 h-3 text-white" />}
+                                  </div>
+                                  <div className="flex-1">
+                                    <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                                      {qi.code}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                                      {qi.text}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </GlassCard>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <GlassCard variant="subtle" padding="xl" radius="xl" className="text-center">
+                    <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-500 dark:text-slate-400">
+                      Select a file to view details and map to Quality Indicators
+                    </p>
+                  </GlassCard>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export { EvidencePage };

@@ -11,6 +11,7 @@ import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
 import { ProgressBar, CircularProgress } from '@/components/glass/ProgressBar';
 import { GlassBadge } from '@/components/glass/GlassBadge';
+import { DashboardWidgets } from '@/components/dashboard/DashboardWidgets';
 import { supabase } from '@/lib/supabase';
 
 interface DashboardStats {
@@ -315,6 +316,16 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               Schedule Audit
             </GlassButton>
           </div>
+        </motion.div>
+
+        {/* Dashboard Widgets */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="mb-8"
+        >
+          <DashboardWidgets onNavigate={onNavigate} />
         </motion.div>
 
         {/* Modules Grid */}
