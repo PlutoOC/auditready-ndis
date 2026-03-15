@@ -29,6 +29,7 @@ import { GlassButton } from '@/components/glass/GlassButton';
 import { GlassBadge } from '@/components/glass/GlassBadge';
 import { FileUploadZone } from '@/components/glass/FileUploadZone';
 import { GuidedQuestionnaire } from '@/components/editors/GuidedQuestionnaire';
+import { EvidenceSuggestions } from '@/components/editors/EvidenceSuggestions';
 import { supabase } from '@/lib/supabase';
 
 interface ResponseEditorPageProps {
@@ -529,6 +530,21 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                 />
               </div>
             </GlassCard>
+          </motion.div>
+        )}
+
+        {/* Evidence Suggestions */}
+        {!showQuestionnaire && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18 }}
+            className="mb-6"
+          >
+            <EvidenceSuggestions
+              qiCode={qi?.code || ''}
+              onUploadClick={() => setShowEvidenceUpload(true)}
+            />
           </motion.div>
         )}
 
