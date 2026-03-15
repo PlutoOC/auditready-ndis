@@ -89,11 +89,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               .eq('module_id', module.id);
 
             // Get completed QIs count (would need self_assessment_responses table)
-            const { count: completedCount } = await supabase
-              .from('self_assessment_responses')
-              .select('*', { count: 'exact', head: true })
-              .eq('organization_id', orgData?.id)
-              .eq('status', 'completed');
+            const { count: completedCount } = orgData?.id 
+              ? await supabase
+                  .from('self_assessment_responses')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('organization_id', orgData.id)
+                  .eq('status', 'completed')
+              : { count: 0 };
 
             return {
               ...module,
@@ -108,17 +110,21 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       }
 
       // Get evidence count
-      const { count: evidenceCount } = await supabase
-        .from('evidence_files')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', orgData?.id);
+      const { count: evidenceCount } = orgData?.id
+        ? await supabase
+            .from('evidence_files')
+            .select('*', { count: 'exact', head: true })
+            .eq('organization_id', orgData.id)
+        : { count: 0 };
 
       // Get upcoming audits count
-      const { count: auditCount } = await supabase
-        .from('internal_audits')
-        .select('*', { count: 'exact', head: true })
-        .eq('organization_id', orgData?.id)
-        .gte('scheduled_date', new Date().toISOString());
+      const { count: auditCount } = orgData?.id
+        ? await supabase
+            .from('internal_audits')
+            .select('*', { count: 'exact', head: true })
+            .eq('organization_id', orgData.id)
+            .gte('scheduled_date', new Date().toISOString())
+        : { count: 0 };
 
       setStats({
         totalModules: modulesData?.length || 8,
