@@ -73,15 +73,24 @@ const EvidencePage: React.FC = () => {
       
       setOrganization(orgData);
 
-      // Fetch evidence files
+      // Fetch evidence files with reviewer info
       const { data: filesData } = orgData?.id
         ? await supabase
             .from('evidence_files')
-            .select('*')
+            .select(`
+              *,
+              reviewer:reviewed_by(email)
+            `)
             .eq('organization_id', orgData.id)
             .eq('is_active', true)
             .order('uploaded_at', { ascending: false })
         : { data: [] };
+      
+      // Process files to add reviewer_name
+      const processedFiles = filesData?.map((file: any) => ({
+        ...file,
+        reviewer_name: file.reviewer?.email?.split('@')[0] || 'Unknown'
+      })) || [];
 
       if (filesData) {
         setFiles(filesData);
@@ -245,6 +254,24 @@ const EvidencePage: React.FC = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
+      draft: { color: 'bg-slate-500', icon: Clock, label: 'Draft' },
+      under_review: { color: 'bg-amber-500', icon: AlertTriangle, label: 'Under Review' },
+      approved: { color: 'bg-green-500', icon: CheckCircle2, label: 'Approved' },
+      rejected: { color: 'bg-red-500', icon: XCircle, label: 'Rejected' },
+      expired: { color: 'bg-purple-500', icon: AlertCircle, label: 'Expired' },
+    };
+    const config = statusConfig[status] || statusConfig.draft;
+    const Icon = config.icon;
+    return (
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium text-white ${config.color}`}>
+        <Icon className="w-3 h-3" />
+        {config.label}
+      </span>
+    );
   };
 
   const getFileIcon = (fileType: string) => {
