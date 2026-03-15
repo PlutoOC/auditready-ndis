@@ -14,11 +14,14 @@ import {
   ListOrdered,
   Link as LinkIcon,
   Trash2,
+  HelpCircle,
+  MessageSquare,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
 import { GlassBadge } from '@/components/glass/GlassBadge';
 import { FileUploadZone } from '@/components/glass/FileUploadZone';
+import { GuidedQuestionnaire } from '@/components/editors/GuidedQuestionnaire';
 import { supabase } from '@/lib/supabase';
 
 interface ResponseEditorPageProps {
@@ -71,6 +74,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [wordCount, setWordCount] = useState(0);
   const [showEvidenceUpload, setShowEvidenceUpload] = useState(false);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [mappedEvidence, setMappedEvidence] = useState<any[]>([]);
   const [organization, setOrganization] = useState<any>(null);
 
@@ -343,6 +347,79 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
             </p>
           </GlassCard>
         </motion.div>
+
+        {/* Guided Questionnaire Toggle */}
+        {!showQuestionnaire && !response.content && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <GlassCard variant="subtle" padding="lg">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+                  <HelpCircle className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+                    Need help writing this response?
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 mb-4">
+                    Answer a few simple questions and we'll help you craft a comprehensive response that meets NDIS standards.
+                  </p>
+                  <GlassButton
+                    variant="primary"
+                    leftIcon={<MessageSquare className="w-4 h-4" />}
+                    onClick={() => setShowQuestionnaire(true)}
+                  >
+                    Start Guided Questionnaire
+                  </GlassButton>
+                </div>
+              </div>
+            </GlassCard>
+          </motion.div>
+        )}
+
+        {/* Guided Questionnaire */}
+        {showQuestionnaire && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-6"
+          >
+            <GlassCard padding="lg" radius="xl">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                    Guided Response Assistant
+                  </h2>
+                  <p className="text-slate-500 text-sm mt-1">
+                    Answer these questions about your practice
+                  </p>
+                </div>
+                <GlassButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowQuestionnaire(false)}
+                >
+                  Close
+                </GlassButton>
+              </div>
+              <GuidedQuestionnaire
+                qiCode={qi?.code || ''}
+                qiText={qi?.title || ''}
+                existingResponse={response.content}
+                onResponseGenerated={(generatedResponse) => {
+                  setResponse(prev => ({ ...prev, content: generatedResponse }));
+                  setShowQuestionnaire(false);
+                  setWordCount(generatedResponse.split(/\s+/).filter(w => w.length > 0).length);
+                }}
+              />
+            </GlassCard>
+          </motion.div>
+        )}
 
         {/* Editor */}
         <motion.div
