@@ -190,10 +190,26 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
 
       if (orgError) throw orgError;
 
-      await supabase
+      // Upsert user record with org_id - handles case where user record doesn't exist yet
+      const { error: userError } = await supabase
         .from('users')
-        .update({ org_id: org.id, role: 'admin' })
-        .eq('id', user.id);
+        .upsert({
+          id: user.id,
+          email: user.email,
+          org_id: org.id,
+          role: 'admin',
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id',
+          ignoreDuplicates: false,
+        });
+
+      if (userError) {
+        console.error('Error upserting user record:', userError);
+        throw new Error(`Failed to update user record: ${userError.message}`);
+      }
 
       // Small delay to ensure database operations are committed
       await new Promise(resolve => setTimeout(resolve, 500));

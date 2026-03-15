@@ -169,7 +169,7 @@ const AuditsPage: React.FC = () => {
           audit_type: newAudit.audit_type,
           scheduled_date: newAudit.scheduled_date,
           status: 'scheduled',
-          lead_auditor: newAudit.lead_auditor,
+          lead_auditor: newAudit.lead_auditor || null,
         }])
         .select()
         .single();

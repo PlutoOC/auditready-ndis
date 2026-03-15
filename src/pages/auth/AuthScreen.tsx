@@ -61,16 +61,40 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBackToLanding,
 
         // Create organization
         if (authData.user) {
-          const { error: orgError } = await supabase
+          const { data: org, error: orgError } = await supabase
             .from('organizations')
             .insert([
               {
-                name: organizationName,
+                legal_name: organizationName,
+                business_name: organizationName,
                 owner_id: authData.user.id,
               },
-            ]);
+            ])
+            .select()
+            .single();
 
           if (orgError) throw orgError;
+
+          // Upsert user record with org_id - handles case where user record doesn't exist yet
+          const { error: userError } = await supabase
+            .from('users')
+            .upsert({
+              id: authData.user.id,
+              email: authData.user.email,
+              org_id: org.id,
+              role: 'admin',
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'id',
+              ignoreDuplicates: false,
+            });
+
+          if (userError) {
+            console.error('Error upserting user record:', userError);
+            throw new Error(`Failed to update user record: ${userError.message}`);
+          }
         }
 
         onAuthSuccess();
