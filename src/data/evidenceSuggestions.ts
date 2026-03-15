@@ -69,6 +69,77 @@ export const evidenceSuggestions: Record<string, string[]> = {
     'Risk review meeting minutes'
   ],
   
+  // CORE MODULE - Provision of Supports
+  'CORE-03-01': [
+    'Access and equity policy',
+    'Waiting list management procedure',
+    'Service eligibility criteria',
+    'Referral pathway documentation',
+    'Access timeframes records'
+  ],
+  'CORE-03-02': [
+    'Support planning templates',
+    'Goal setting documentation',
+    'Participant review meeting records',
+    'Plan implementation records',
+    'Outcome measurement tools'
+  ],
+  'CORE-03-03': [
+    'Service agreement templates',
+    'Consent forms',
+    'Terms and conditions',
+    'Agreement review records',
+    'Complaints about agreements'
+  ],
+  
+  // CORE MODULE - Supports Environment
+  'CORE-04-01': [
+    'Workplace health and safety policy',
+    'Risk assessment forms',
+    'Safety inspection checklists',
+    'Incident reports',
+    'Emergency procedures'
+  ],
+  'CORE-04-02': [
+    'Participant money handling policy',
+    'Financial transaction records',
+    'Property management procedures',
+    'Receipt and banking records',
+    'Financial audit reports'
+  ],
+  
+  // MODULE 1 - High Intensity
+  'MOD1-01-01': [
+    'Complex bowel care procedure',
+    'Staff competency assessments',
+    'Medical clearance forms',
+    'Care plan documentation',
+    'Incident/near miss records'
+  ],
+  'MOD1-02-01': [
+    'Enteral feeding protocol',
+    'Dietitian consultation records',
+    'Feeding chart templates',
+    'Equipment maintenance logs',
+    'Staff training certificates'
+  ],
+  
+  // MODULE 2 - Behaviour Support
+  'MOD2-01-01': [
+    'Behaviour support policy',
+    'Positive behaviour support plans',
+    'Functional behaviour assessments',
+    'Behaviour incident records',
+    'Restrictive practice authorisations'
+  ],
+  'MOD2-02-01': [
+    'Restrictive practice policy',
+    'Authorisation records',
+    'Monitoring and review forms',
+    'Incident reports',
+    'Alternative strategies documentation'
+  ],
+  
   // Default suggestions for any QI
   'DEFAULT': [
     'Relevant policy and procedure',
