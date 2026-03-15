@@ -543,6 +543,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
           >
             <EvidenceSuggestions
               qiCode={qi?.code || ''}
+              qiTitle={qi?.title || ''}
               onUploadClick={() => setShowEvidenceUpload(true)}
             />
           </motion.div>

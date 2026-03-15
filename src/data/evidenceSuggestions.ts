@@ -151,9 +151,190 @@ export const evidenceSuggestions: Record<string, string[]> = {
   ]
 };
 
+// Evidence templates based on keywords
+const evidenceTemplates: Record<string, string[]> = {
+  'complaints': [
+    'Complaints policy and procedure',
+    'Complaints register/log',
+    'Complaint resolution records',
+    'Staff complaints training',
+    'Complaints analysis reports',
+    'Feedback survey results'
+  ],
+  'incident': [
+    'Incident management policy',
+    'Incident report forms',
+    'Incident register',
+    'Investigation procedures',
+    'Root cause analysis records',
+    'Corrective action tracking'
+  ],
+  'risk': [
+    'Risk management policy',
+    'Risk assessment forms',
+    'Risk register',
+    'Risk mitigation plans',
+    'Business continuity plan',
+    'Emergency procedures'
+  ],
+  'training': [
+    'Staff training policy',
+    'Training needs analysis',
+    'Training records/register',
+    'Competency assessments',
+    'Training certificates',
+    'Induction checklists'
+  ],
+  'participant': [
+    'Participant intake forms',
+    'Individual support plans',
+    'Participant feedback surveys',
+    'Consent forms',
+    'Participant review meetings',
+    'Outcome measurement records'
+  ],
+  'staff': [
+    'HR policy and procedures',
+    'Recruitment process',
+    'Police check records',
+    'Reference checks',
+    'Staff files',
+    'Performance reviews'
+  ],
+  'health-safety': [
+    'WHS policy',
+    'Safe work procedures',
+    'Equipment maintenance logs',
+    'Hazard identification forms',
+    'Safety inspection checklists',
+    'Emergency evacuation plan'
+  ],
+  'medication': [
+    'Medication policy',
+    'Medication administration records',
+    'Medication error reports',
+    'Staff medication training',
+    'Pharmacy liaison records',
+    'Medication storage checks'
+  ],
+  'privacy': [
+    'Privacy policy',
+    'Confidentiality agreements',
+    'Information handling procedures',
+    'Data breach records',
+    'Privacy training records',
+    'Consent for information sharing'
+  ],
+  'governance': [
+    'Governance structure/org chart',
+    'Management meeting minutes',
+    'Decision-making procedures',
+    'Conflict of interest declarations',
+    'Strategic plan',
+    'Annual reports'
+  ],
+  'quality': [
+    'Quality management policy',
+    'Internal audit reports',
+    'Continuous improvement plan',
+    'Quality indicators dashboard',
+    'Management review minutes',
+    'Accreditation reports'
+  ],
+  'behaviour': [
+    'Behaviour support policy',
+    'Positive behaviour support plans',
+    'Functional behaviour assessments',
+    'Restrictive practice authorisations',
+    'Behaviour incident records',
+    'Behaviour specialist reports'
+  ],
+  'communication': [
+    'Communication policy',
+    'Communication plans/templates',
+    'Interpreter service records',
+    'Accessible format documents',
+    'Communication training',
+    'Participant communication preferences'
+  ],
+  'environment': [
+    'Environmental access audit',
+    'Modification records',
+    'Equipment assessment forms',
+    'Accessibility compliance checks',
+    'Participant environment reviews',
+    'Adaptive equipment records'
+  ],
+  'finance': [
+    'Financial management policy',
+    'Participant money handling procedures',
+    'Financial transaction records',
+    'Receipt and banking records',
+    'Financial audit reports',
+    'NDIS pricing compliance'
+  ],
+  'planning': [
+    'Support planning policy',
+    'Goal setting templates',
+    'Plan review schedules',
+    'Transition planning documents',
+    'Outcome measurement tools',
+    'Plan implementation records'
+  ],
+  'feedback': [
+    'Feedback collection procedures',
+    'Participant satisfaction surveys',
+    'Stakeholder consultation records',
+    'Feedback action plans',
+    'Service improvement records',
+    'Compliments register'
+  ],
+  'documentation': [
+    'Record keeping policy',
+    'Documentation standards',
+    'File management procedures',
+    'Document version control',
+    'Record retention schedule',
+    'Confidentiality procedures'
+  ],
+  'equipment': [
+    'Equipment maintenance policy',
+    'Equipment registers',
+    'Maintenance schedules',
+    'Safety check records',
+    'Equipment training records',
+    'Asset management reports'
+  ],
+  'transport': [
+    'Transport policy',
+    'Vehicle maintenance records',
+    'Driver competency checks',
+    'Transport risk assessments',
+    'Incident reports',
+    'Transport plans'
+  ]
+};
+
 // Get suggestions for a QI
-export function getEvidenceSuggestions(qiCode: string): string[] {
-  return evidenceSuggestions[qiCode] || evidenceSuggestions['DEFAULT'];
+export function getEvidenceSuggestions(qiCode: string, qiTitle?: string): string[] {
+  // First check for exact match
+  if (evidenceSuggestions[qiCode]) {
+    return evidenceSuggestions[qiCode];
+  }
+  
+  // Then try pattern matching on QI title
+  if (qiTitle) {
+    const titleLower = qiTitle.toLowerCase();
+    
+    for (const [keyword, suggestions] of Object.entries(evidenceTemplates)) {
+      if (titleLower.includes(keyword)) {
+        return suggestions;
+      }
+    }
+  }
+  
+  // Fallback to default
+  return evidenceSuggestions['DEFAULT'];
 }
 
 // Get suggestions with category

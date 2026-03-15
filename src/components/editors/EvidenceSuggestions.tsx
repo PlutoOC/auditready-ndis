@@ -5,14 +5,16 @@ import { getEvidenceSuggestions } from '@/data/evidenceSuggestions';
 
 interface EvidenceSuggestionsProps {
   qiCode: string;
+  qiTitle?: string;
   onUploadClick: () => void;
 }
 
 export const EvidenceSuggestions: React.FC<EvidenceSuggestionsProps> = ({
   qiCode,
+  qiTitle,
   onUploadClick,
 }) => {
-  const suggestions = getEvidenceSuggestions(qiCode);
+  const suggestions = getEvidenceSuggestions(qiCode, qiTitle);
 
   return (
     <GlassCard variant="subtle" padding="lg">
