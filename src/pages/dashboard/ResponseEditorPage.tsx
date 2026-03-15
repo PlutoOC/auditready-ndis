@@ -16,6 +16,13 @@ import {
   Trash2,
   HelpCircle,
   MessageSquare,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Star,
+  Users,
+  FileCheck,
+  ClipboardCheck,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
@@ -417,6 +424,110 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                   setWordCount(generatedResponse.split(/\s+/).filter(w => w.length > 0).length);
                 }}
               />
+            </GlassCard>
+          </motion.div>
+        )}
+
+        {/* Rating Section */}
+        {!showQuestionnaire && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <GlassCard variant="frosted" padding="lg">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+                <Star className="w-5 h-5 text-indigo-500" />
+                Self-Assessment Rating
+              </h3>
+
+              {/* Rating Options */}
+              <div className="space-y-3 mb-6">
+                {[
+                  { value: 0, label: 'Major Nonconformity', desc: 'High risk - cannot certify', color: 'red', icon: XCircle },
+                  { value: 1, label: 'Minor Nonconformity', desc: 'Needs corrective action', color: 'orange', icon: AlertTriangle },
+                  { value: 2, label: 'Conformity', desc: 'Meets NDIS standard', color: 'green', icon: CheckCircle },
+                  { value: 3, label: 'Best Practice', desc: 'Exceeds standard', color: 'blue', icon: Star },
+                ].map((option) => {
+                  const Icon = option.icon;
+                  const isSelected = response.rating === option.value;
+                  return (
+                    <label
+                      key={option.value}
+                      className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                        isSelected
+                          ? `border-${option.color}-500 bg-${option.color}-50 dark:bg-${option.color}-900/20`
+                          : 'border-slate-200 hover:border-slate-300 dark:border-slate-700'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="rating"
+                        value={option.value}
+                        checked={isSelected}
+                        onChange={() => setResponse(prev => ({ ...prev, rating: option.value }))}
+                        className="mt-1 w-4 h-4 text-indigo-600"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Icon className={`w-5 h-5 text-${option.color}-500`} />
+                          <span className={`font-semibold text-${option.color}-700 dark:text-${option.color}-300`}>
+                            {option.value} — {option.label}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-500 mt-1">{option.desc}</p>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Evidence Triangulation */}
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 mb-4">
+                <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+                  <ClipboardCheck className="w-4 h-4" />
+                  Evidence Triangulation
+                </h4>
+                <div className="space-y-2">
+                  {[
+                    { key: 'participants', label: 'Participant feedback', icon: Users },
+                    { key: 'staff', label: 'Staff interviews', icon: Users },
+                    { key: 'documents', label: 'Document review', icon: FileCheck },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const key = item.key as keyof typeof response.triangulation;
+                    return (
+                      <label key={item.key} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={response.triangulation[key]}
+                          onChange={(e) => setResponse(prev => ({
+                            ...prev,
+                            triangulation: { ...prev.triangulation, [key]: e.target.checked }
+                          }))}
+                          className="w-4 h-4 text-indigo-600 rounded"
+                        />
+                        <Icon className="w-4 h-4 text-slate-400" />
+                        <span className="text-sm text-slate-600 dark:text-slate-400">{item.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Rating Notes */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Rating Justification
+                </label>
+                <textarea
+                  value={response.ratingNotes}
+                  onChange={(e) => setResponse(prev => ({ ...prev, ratingNotes: e.target.value }))}
+                  placeholder="Explain why you gave this rating. What evidence supports your assessment?"
+                  className="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-sm min-h-[80px]"
+                />
+              </div>
             </GlassCard>
           </motion.div>
         )}
