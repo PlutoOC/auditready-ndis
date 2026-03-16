@@ -44,6 +44,8 @@ interface QualityIndicator {
   code: string;
   title: string;
   description: string;
+  text?: string;
+  guidance?: string;
 }
 
 interface Outcome {
@@ -329,7 +331,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                 <span>{qi.code}</span>
               </div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {qi.title}
+                {qi.title || qi.text}
               </h1>
             </div>
             <div className="flex items-center gap-3">
@@ -358,7 +360,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
               Quality Indicator Description
             </h3>
             <p className="text-slate-700 dark:text-slate-300">
-              {qi.description}
+              {qi.description || qi.guidance}
             </p>
           </GlassCard>
         </motion.div>
@@ -550,7 +552,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
         >
           <EvidenceSuggestions
             qiCode={qi?.code || ''}
-            qiTitle={qi?.title || ''}
+            qiTitle={qi?.title || qi?.text || ''}
             onUploadClick={() => setShowEvidenceUpload(true)}
           />
         </motion.div>
