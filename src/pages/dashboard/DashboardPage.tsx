@@ -6,6 +6,7 @@ import {
   Calendar,
   ArrowRight,
   TrendingUp,
+  Download,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
@@ -13,6 +14,7 @@ import { ProgressBar, CircularProgress } from '@/components/glass/ProgressBar';
 import { GlassBadge } from '@/components/glass/GlassBadge';
 import { DashboardWidgets } from '@/components/dashboard/DashboardWidgets';
 import { supabase } from '@/lib/supabase';
+import { exportModuleToPDF, downloadBlob } from '@/services/exportService';
 
 interface DashboardStats {
   totalModules: number;
@@ -321,6 +323,33 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               onClick={() => onNavigate('audits')}
             >
               Schedule Audit
+            </GlassButton>
+            <GlassButton
+              variant="secondary"
+              leftIcon={<Download className="w-4 h-4" />}
+              onClick={async () => {
+                // Get current org from state or fetch it
+                const { data: userData } = await supabase.auth.getUser();
+                if (!userData.user) return;
+                
+                const { data: orgData } = await supabase
+                  .from('organizations')
+                  .select('id')
+                  .eq('owner_id', userData.user.id)
+                  .order('created_at', { ascending: false })
+                  .maybeSingle();
+                  
+                if (!orgData?.id) return;
+                
+                try {
+                  const blob = await exportModuleToPDF(orgData.id, 'CORE');
+                  downloadBlob(blob, `audit-report-CORE-${new Date().toISOString().split('T')[0]}.html`);
+                } catch (error) {
+                  console.error('Export failed:', error);
+                }
+              }}
+            >
+              Export Report
             </GlassButton>
           </div>
         </motion.div>
