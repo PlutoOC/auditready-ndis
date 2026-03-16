@@ -41,7 +41,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [stats, setStats] = useState<DashboardStats>({
     totalModules: 8,
     completedModules: 0,
-    totalQIs: 249,
+    totalQIs: 308,
     completedQIs: 0,
     evidenceCount: 0,
     upcomingAudits: 0,
@@ -129,7 +129,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       setStats({
         totalModules: modulesData?.length || 8,
         completedModules: 0,
-        totalQIs: 249,
+        totalQIs: 308,
         completedQIs: 0,
         evidenceCount: evidenceCount || 0,
         upcomingAudits: auditCount || 0,

@@ -103,7 +103,7 @@ const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ onNavigate }) => {
         .gte('scheduled_date', new Date().toISOString());
 
       // Calculate compliance score
-      const totalQIs = 249; // Total NDIS QIs
+      const totalQIs = 308; // Total NDIS QIs
       const complianceScore = totalResponses
         ? Math.round(((completedResponses || 0) / totalQIs) * 100)
         : 0;
