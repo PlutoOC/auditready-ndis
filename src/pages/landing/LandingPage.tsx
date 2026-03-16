@@ -277,7 +277,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
                       whileHover={{ y: -4, boxShadow: '0 12px 24px rgba(0,0,0,0.1)' }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="text-3xl font-bold bg-gradient-to-r from-fuchsia-600 to-pink-600 bg-clip-text text-transparent">249</div>
+                      <div className="text-3xl font-bold bg-gradient-to-r from-fuchsia-600 to-pink-600 bg-clip-text text-transparent">308</div>
                       <div className="text-sm text-slate-600 dark:text-slate-400">Quality Indicators</div>
                     </motion.div>
                     <motion.div 
