@@ -118,7 +118,8 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
         .from('organizations')
         .select('*')
         .eq('owner_id', user.id)
-        .single();
+        .order('created_at', { ascending: false })
+        .maybeSingle();
       
       setOrganization(orgData);
 

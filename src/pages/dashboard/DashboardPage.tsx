@@ -64,7 +64,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
         .from('organizations')
         .select('*')
         .eq('owner_id', user.id)
-        .single();
+        .order('created_at', { ascending: false })
+        .maybeSingle();
       
       // Organization data available in orgData
 

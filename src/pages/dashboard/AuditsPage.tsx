@@ -96,7 +96,8 @@ const AuditsPage: React.FC = () => {
         .from('organizations')
         .select('*')
         .eq('owner_id', user.id)
-        .single();
+        .order('created_at', { ascending: false })
+        .maybeSingle();
       
       setOrganization(orgData);
 
