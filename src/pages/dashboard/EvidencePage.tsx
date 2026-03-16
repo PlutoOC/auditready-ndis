@@ -12,6 +12,11 @@ import {
   Filter,
   Trash2,
   Link as LinkIcon,
+  Clock,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
@@ -29,6 +34,8 @@ interface EvidenceFile {
   uploaded_at: string;
   uploaded_by: string;
   storage_path: string;
+  status?: 'draft' | 'under_review' | 'approved' | 'rejected' | 'expired';
+  reviewer?: { email: string };
 }
 
 interface QualityIndicator {
@@ -92,8 +99,8 @@ const EvidencePage: React.FC = () => {
         reviewer_name: file.reviewer?.email?.split('@')[0] || 'Unknown'
       })) || [];
 
-      if (filesData) {
-        setFiles(filesData);
+      if (processedFiles) {
+        setFiles(processedFiles);
       }
 
       // Fetch quality indicators for mapping
@@ -424,6 +431,7 @@ const EvidencePage: React.FC = () => {
                               {category.label}
                             </span>
                           )}
+                          {file.status && getStatusBadge(file.status)}
                         </div>
                         <p className="text-sm text-slate-500 mt-1">
                           {formatFileSize(file.file_size)} • {new Date(file.uploaded_at).toLocaleDateString()}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlassCard } from '@/components/glass/GlassCard';
-import { FileText, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+import { FileText, Upload, AlertCircle } from 'lucide-react';
 import { getEvidenceSuggestions } from '@/data/evidenceSuggestions';
 
 interface EvidenceSuggestionsProps {

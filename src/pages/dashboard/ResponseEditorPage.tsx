@@ -63,6 +63,13 @@ interface Response {
   content: string;
   status: 'draft' | 'completed';
   updated_at?: string;
+  rating?: number;
+  ratingNotes?: string;
+  triangulation?: {
+    participants: boolean;
+    staff: boolean;
+    documents: boolean;
+  };
 }
 
 const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
@@ -497,15 +504,16 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                     { key: 'documents', label: 'Document review', icon: FileCheck },
                   ].map((item) => {
                     const Icon = item.icon;
-                    const key = item.key as keyof typeof response.triangulation;
+                    const key = item.key as 'participants' | 'staff' | 'documents';
+                    const triangulation = response.triangulation || { participants: false, staff: false, documents: false };
                     return (
                       <label key={item.key} className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={response.triangulation[key]}
+                          checked={triangulation[key]}
                           onChange={(e) => setResponse(prev => ({
                             ...prev,
-                            triangulation: { ...prev.triangulation, [key]: e.target.checked }
+                            triangulation: { ...(prev.triangulation || { participants: false, staff: false, documents: false }), [key]: e.target.checked }
                           }))}
                           className="w-4 h-4 text-indigo-600 rounded"
                         />
