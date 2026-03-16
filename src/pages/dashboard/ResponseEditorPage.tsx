@@ -72,6 +72,7 @@ interface Response {
     staff: boolean;
     documents: boolean;
   };
+  aiGenerated?: boolean;
 }
 
 const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
@@ -86,7 +87,9 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
   const [response, setResponse] = useState<Response>({
     content: '',
     status: 'draft',
+    aiGenerated: false,
   });
+  const [aiAcknowledged, setAiAcknowledged] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [wordCount, setWordCount] = useState(0);
@@ -163,7 +166,9 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
           content: responseData.response_text || '',
           status: responseData.status,
           updated_at: responseData.updated_at,
+          aiGenerated: responseData.ai_generated || false,
         });
+        setAiAcknowledged(!responseData.ai_generated); // If not AI generated, already acknowledged
         setLastSaved(new Date(responseData.updated_at));
       }
 
@@ -197,6 +202,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
         quality_indicator_id: qiId,
         response_text: response.content,
         status: markComplete ? 'completed' : 'draft',
+        ai_generated: response.aiGenerated || false,
       };
 
       if (response.id) {
@@ -430,7 +436,8 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                 qiText={qi?.title || ''}
                 existingResponse={response.content}
                 onResponseGenerated={(generatedResponse) => {
-                  setResponse(prev => ({ ...prev, content: generatedResponse }));
+                  setResponse(prev => ({ ...prev, content: generatedResponse, aiGenerated: true }));
+                  setAiAcknowledged(false);
                   setShowQuestionnaire(false);
                   setWordCount(generatedResponse.split(/\s+/).filter(w => w.length > 0).length);
                 }}
@@ -598,6 +605,34 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
               className="w-full min-h-[400px] p-6 bg-transparent border-none resize-none focus:outline-none focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 leading-relaxed"
             />
 
+            {/* AI Generated Warning */}
+            {response.aiGenerated && (
+              <div className="mx-4 mb-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                      AI-Generated Content
+                    </p>
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+                      This response was generated using AI. Please review and customize it before submission.
+                    </p>
+                    <label className="flex items-center gap-2 mt-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={aiAcknowledged}
+                        onChange={(e) => setAiAcknowledged(e.target.checked)}
+                        className="w-4 h-4 text-amber-600 rounded border-amber-400"
+                      />
+                      <span className="text-xs text-amber-700 dark:text-amber-400">
+                        I have reviewed and customized this AI-generated content
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Footer */}
             <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 rounded-b-xl">
               <div className="flex items-center gap-4 text-sm text-slate-500">
@@ -627,7 +662,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                   variant="primary"
                   leftIcon={<CheckCircle2 className="w-4 h-4" />}
                   onClick={() => handleSave(true)}
-                  disabled={isSaving || !response.content.trim()}
+                  disabled={isSaving || !response.content.trim() || (response.aiGenerated && !aiAcknowledged)}
                 >
                   Mark Complete
                 </GlassButton>
