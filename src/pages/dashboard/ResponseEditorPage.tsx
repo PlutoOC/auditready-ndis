@@ -436,8 +436,8 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
           </motion.div>
         )}
 
-        {/* Rating Section */}
-        {!showQuestionnaire && (
+        {/* Rating Section - DEBUG: Always show */}
+        {(
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -541,21 +541,19 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
           </motion.div>
         )}
 
-        {/* Evidence Suggestions */}
-        {!showQuestionnaire && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.18 }}
-            className="mb-6"
-          >
-            <EvidenceSuggestions
-              qiCode={qi?.code || ''}
-              qiTitle={qi?.title || ''}
-              onUploadClick={() => setShowEvidenceUpload(true)}
-            />
-          </motion.div>
-        )}
+        {/* Evidence Suggestions - DEBUG: Always show */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          className="mb-6"
+        >
+          <EvidenceSuggestions
+            qiCode={qi?.code || ''}
+            qiTitle={qi?.title || ''}
+            onUploadClick={() => setShowEvidenceUpload(true)}
+          />
+        </motion.div>
 
         {/* Editor */}
         <motion.div
