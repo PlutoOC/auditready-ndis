@@ -14,6 +14,7 @@ const features = [
     icon: <FileText className="w-6 h-6" />,
     title: 'Self-Assessment Made Easy',
     description: 'Write tailored responses for all 308 NDIS Quality Indicators across 8 modules with guided assistance.',
+    // Updated: 308 QIs (was 249)
   },
   {
     icon: <Shield className="w-6 h-6" />,
