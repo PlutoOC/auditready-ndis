@@ -36,6 +36,9 @@ interface EvidenceFile {
   storage_path: string;
   status?: 'draft' | 'under_review' | 'approved' | 'rejected' | 'expired';
   reviewer?: { email: string };
+  evidence_type: 'file' | 'url' | 'text';
+  url?: string;
+  text_content?: string;
 }
 
 interface QualityIndicator {
@@ -62,6 +65,15 @@ const EvidencePage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [mappedQIs, setMappedQIs] = useState<Record<string, string[]>>({});
   const [organization, setOrganization] = useState<any>(null);
+  
+  // Evidence type states
+  const [evidenceType, setEvidenceType] = useState<'file' | 'url' | 'text'>('file');
+  const [urlInput, setUrlInput] = useState('');
+  const [textInput, setTextInput] = useState('');
+  const [urlDescription, setUrlDescription] = useState('');
+  const [textDescription, setTextDescription] = useState('');
+  const [urlCategory, setUrlCategory] = useState('policy');
+  const [textCategory, setTextCategory] = useState('policy');
 
   useEffect(() => {
     fetchData();
@@ -181,6 +193,76 @@ const EvidencePage: React.FC = () => {
     setShowUploadZone(false);
   }, [organization]);
 
+  const handleAddUrl = async () => {
+    if (!organization || !urlInput.trim()) return;
+
+    try {
+      const { data: evidenceData, error: dbError } = await supabase
+        .from('evidence_files')
+        .insert([{
+          organization_id: organization.id,
+          filename: urlInput.split('/').pop() || 'URL Link',
+          storage_path: '',
+          file_type: 'url',
+          file_size: 0,
+          category: urlCategory,
+          description: urlDescription,
+          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          evidence_type: 'url',
+          url: urlInput,
+        }])
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        return;
+      }
+
+      setFiles(prev => [evidenceData, ...prev]);
+      setUrlInput('');
+      setUrlDescription('');
+      setShowUploadZone(false);
+    } catch (error) {
+      console.error('Error adding URL:', error);
+    }
+  };
+
+  const handleAddText = async () => {
+    if (!organization || !textInput.trim()) return;
+
+    try {
+      const { data: evidenceData, error: dbError } = await supabase
+        .from('evidence_files')
+        .insert([{
+          organization_id: organization.id,
+          filename: 'Text Evidence',
+          storage_path: '',
+          file_type: 'text',
+          file_size: textInput.length,
+          category: textCategory,
+          description: textDescription,
+          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          evidence_type: 'text',
+          text_content: textInput,
+        }])
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        return;
+      }
+
+      setFiles(prev => [evidenceData, ...prev]);
+      setTextInput('');
+      setTextDescription('');
+      setShowUploadZone(false);
+    } catch (error) {
+      console.error('Error adding text:', error);
+    }
+  };
+
   const handleDeleteFile = async (fileId: string) => {
     const file = files.find(f => f.id === fileId);
     if (!file) return;
@@ -282,10 +364,15 @@ const EvidencePage: React.FC = () => {
     );
   };
 
-  const getFileIcon = (fileType: string) => {
-    if (fileType.startsWith('image/')) return <Image className="w-5 h-5" />;
-    if (fileType.includes('pdf')) return <FileText className="w-5 h-5" />;
-    if (fileType.includes('spreadsheet') || fileType.includes('excel')) return <FileSpreadsheet className="w-5 h-5" />;
+  const getFileIcon = (file: EvidenceFile) => {
+    // Check evidence type first
+    if (file.evidence_type === 'url') return <LinkIcon className="w-5 h-5 text-blue-600" />;
+    if (file.evidence_type === 'text') return <FileText className="w-5 h-5 text-emerald-600" />;
+    
+    // File type icons
+    if (file.file_type.startsWith('image/')) return <Image className="w-5 h-5" />;
+    if (file.file_type.includes('pdf')) return <FileText className="w-5 h-5" />;
+    if (file.file_type.includes('spreadsheet') || file.file_type.includes('excel')) return <FileSpreadsheet className="w-5 h-5" />;
     return <FileIcon className="w-5 h-5" />;
   };
 
@@ -323,7 +410,7 @@ const EvidencePage: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Upload Zone */}
+        {/* Add Evidence - Three Types */}
         <AnimatePresence>
           {showUploadZone && (
             <motion.div
@@ -332,13 +419,162 @@ const EvidencePage: React.FC = () => {
               exit={{ opacity: 0, height: 0 }}
               className="mb-8"
             >
-              <FileUploadZone
-                onFilesSelected={handleFilesSelected}
-                accept="*/*"
-                multiple
-                label="Drop evidence files here or click to browse"
-                sublabel="All file types accepted up to 50MB"
-              />
+              <GlassCard variant="frosted" padding="lg" radius="xl">
+                {/* Evidence Type Tabs */}
+                <div className="flex gap-2 mb-6">
+                  <button
+                    onClick={() => setEvidenceType('file')}
+                    className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                      evidenceType === 'file'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Upload className="w-4 h-4" />
+                    Upload File
+                  </button>
+                  <button
+                    onClick={() => setEvidenceType('url')}
+                    className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                      evidenceType === 'url'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    <LinkIcon className="w-4 h-4" />
+                    Add URL
+                  </button>
+                  <button
+                    onClick={() => setEvidenceType('text')}
+                    className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                      evidenceType === 'text'
+                        ? 'bg-indigo-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
+                    }`}
+                  >
+                    <FileText className="w-4 h-4" />
+                    Add Text
+                  </button>
+                </div>
+
+                {/* File Upload */}
+                {evidenceType === 'file' && (
+                  <FileUploadZone
+                    onFilesSelected={handleFilesSelected}
+                    accept="*/*"
+                    multiple
+                    label="Drop evidence files here or click to browse"
+                    sublabel="All file types accepted up to 50MB"
+                  />
+                )}
+
+                {/* URL Input */}
+                {evidenceType === 'url' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        URL Link
+                      </label>
+                      <GlassInput
+                        placeholder="https://example.com/document"
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        leftIcon={<LinkIcon className="w-4 h-4" />}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        placeholder="Describe what this link contains..."
+                        value={urlDescription}
+                        onChange={(e) => setUrlDescription(e.target.value)}
+                        className="w-full h-24 px-4 py-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Category
+                      </label>
+                      <select
+                        value={urlCategory}
+                        onChange={(e) => setUrlCategory(e.target.value)}
+                        className="w-full h-11 px-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                      >
+                        {EVIDENCE_CATEGORIES.map(cat => (
+                          <option key={cat.value} value={cat.value}>{cat.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <GlassButton variant="secondary" onClick={() => setShowUploadZone(false)}>
+                        Cancel
+                      </GlassButton>
+                      <GlassButton
+                        variant="primary"
+                        onClick={handleAddUrl}
+                        disabled={!urlInput.trim()}
+                      >
+                        Add URL Evidence
+                      </GlassButton>
+                    </div>
+                  </div>
+                )}
+
+                {/* Text Input */}
+                {evidenceType === 'text' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Evidence Description
+                      </label>
+                      <textarea
+                        placeholder="Describe the evidence in detail. This could be a procedure, policy summary, or any text-based evidence..."
+                        value={textInput}
+                        onChange={(e) => setTextInput(e.target.value)}
+                        className="w-full h-32 px-4 py-3 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Additional Notes
+                      </label>
+                      <GlassInput
+                        placeholder="Any additional context..."
+                        value={textDescription}
+                        onChange={(e) => setTextDescription(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Category
+                      </label>
+                      <select
+                        value={textCategory}
+                        onChange={(e) => setTextCategory(e.target.value)}
+                        className="w-full h-11 px-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                      >
+                        {EVIDENCE_CATEGORIES.map(cat => (
+                          <option key={cat.value} value={cat.value}>{cat.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                      <GlassButton variant="secondary" onClick={() => setShowUploadZone(false)}>
+                        Cancel
+                      </GlassButton>
+                      <GlassButton
+                        variant="primary"
+                        onClick={handleAddText}
+                        disabled={!textInput.trim()}
+                      >
+                        Add Text Evidence
+                      </GlassButton>
+                    </div>
+                  </div>
+                )}
+              </GlassCard>
             </motion.div>
           )}
         </AnimatePresence>
@@ -419,8 +655,14 @@ const EvidencePage: React.FC = () => {
                     className="cursor-pointer"
                   >
                     <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
-                        {getFileIcon(file.file_type)}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        file.evidence_type === 'url' 
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                          : file.evidence_type === 'text'
+                          ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                      }`}>
+                        {getFileIcon(file)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -492,23 +734,65 @@ const EvidencePage: React.FC = () => {
 
                     <div className="space-y-4">
                       <div>
-                        <p className="text-xs text-slate-500 mb-1">Filename</p>
+                        <p className="text-xs text-slate-500 mb-1">
+                          {selectedFile.evidence_type === 'url' ? 'URL Link' : 
+                           selectedFile.evidence_type === 'text' ? 'Text Evidence' : 'Filename'}
+                        </p>
                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100 break-all">
                           {selectedFile.filename}
                         </p>
                       </div>
 
+                      {/* URL Evidence Display */}
+                      {selectedFile.evidence_type === 'url' && selectedFile.url && (
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Link</p>
+                          <a 
+                            href={selectedFile.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-700 break-all underline"
+                          >
+                            {selectedFile.url}
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Text Evidence Display */}
+                      {selectedFile.evidence_type === 'text' && selectedFile.text_content && (
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Content</p>
+                          <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg max-h-48 overflow-y-auto">
+                            <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                              {selectedFile.text_content}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Description for all types */}
+                      {selectedFile.description && (
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Description</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-300">
+                            {selectedFile.description}
+                          </p>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-xs text-slate-500 mb-1">Size</p>
-                          <p className="text-sm text-slate-900 dark:text-slate-100">
-                            {formatFileSize(selectedFile.file_size)}
+                          <p className="text-xs text-slate-500 mb-1">Type</p>
+                          <p className="text-sm text-slate-900 dark:text-slate-100 capitalize">
+                            {selectedFile.evidence_type || 'File'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 mb-1">Type</p>
+                          <p className="text-xs text-slate-500 mb-1">Size</p>
                           <p className="text-sm text-slate-900 dark:text-slate-100">
-                            {selectedFile.file_type || 'Unknown'}
+                            {selectedFile.evidence_type === 'url' ? 'URL' : 
+                             selectedFile.evidence_type === 'text' ? `${selectedFile.file_size} chars` :
+                             formatFileSize(selectedFile.file_size)}
                           </p>
                         </div>
                       </div>
