@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useCRM } from '@/hooks/useCRM';
 import type { Lead, LeadStage } from '@/types/crm';
 import { STAGE_LABELS } from '@/types/crm';
-import { ArrowLeft, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 interface PipelinePageProps {
   onNavigate: (page: string, params?: any) => void;
@@ -74,27 +74,27 @@ export function PipelinePage({ onNavigate }: PipelinePageProps) {
         </div>
 
         {/* Pipeline Board */}
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory">
           {STAGES.map((stage) => (
             <div
               key={stage}
-              className="flex-shrink-0 w-72"
+              className="flex-shrink-0 w-56 snap-start"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, stage)}
             >
-              <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-4">
+              <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-3 h-full">
                 {/* Column Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-slate-900 dark:text-white">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-sm truncate" title={STAGE_LABELS[stage]}>
                     {STAGE_LABELS[stage]}
                   </h3>
-                  <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-sm px-2 py-1 rounded-full">
+                  <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs px-2 py-0.5 rounded-full">
                     {leadsByStage[stage]?.length || 0}
                   </span>
                 </div>
 
                 {/* Lead Cards */}
-                <div className="space-y-3">
+                <div className="space-y-2 min-h-[100px]">
                   {leadsByStage[stage]?.map((lead, index) => (
                     <motion.div
                       key={lead.id}
@@ -104,32 +104,29 @@ export function PipelinePage({ onNavigate }: PipelinePageProps) {
                       draggable
                       onDragStart={() => handleDragStart(lead)}
                       onClick={() => onNavigate('crm-lead-detail', { leadId: lead.id })}
-                      className="bg-white dark:bg-slate-700 p-4 rounded-lg shadow-sm cursor-move hover:shadow-md transition-shadow"
+                      className="bg-white dark:bg-slate-700 p-3 rounded-lg shadow-sm cursor-move hover:shadow-md transition-shadow"
                     >
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-medium text-slate-900 dark:text-white text-sm">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-medium text-slate-900 dark:text-white text-sm truncate flex-1" title={lead.organization_name}>
                           {lead.organization_name}
                         </h4>
-                        <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-600 rounded">
-                          <MoreHorizontal className="w-4 h-4 text-slate-400" />
-                        </button>
                       </div>
                       {lead.contact_name && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
                           {lead.contact_name}
                         </p>
                       )}
                       {lead.trial_ends_at && stage === 'trial_started' && (
                         <div className="mt-2">
-                          <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-1 rounded">
-                            Trial ends: {new Date(lead.trial_ends_at).toLocaleDateString()}
+                          <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded block truncate">
+                            Ends: {new Date(lead.trial_ends_at).toLocaleDateString()}
                           </span>
                         </div>
                       )}
                       {lead.demo_scheduled_at && stage === 'demo_scheduled' && (
                         <div className="mt-2">
-                          <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded">
-                            Demo: {new Date(lead.demo_scheduled_at).toLocaleDateString()}
+                          <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 rounded block truncate">
+                            {new Date(lead.demo_scheduled_at).toLocaleDateString()}
                           </span>
                         </div>
                       )}
@@ -138,8 +135,8 @@ export function PipelinePage({ onNavigate }: PipelinePageProps) {
                 </div>
 
                 {leadsByStage[stage]?.length === 0 && (
-                  <div className="text-center py-8 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg">
-                    <p className="text-sm text-slate-400 dark:text-slate-500">No leads</p>
+                  <div className="text-center py-6 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg">
+                    <p className="text-xs text-slate-400 dark:text-slate-500">Drop leads here</p>
                   </div>
                 )}
               </div>
