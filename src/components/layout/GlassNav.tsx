@@ -63,15 +63,19 @@ const GlassNav: React.FC<GlassNavProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Platform owner org ID - only users in this org can see CRM
+  const PLATFORM_OWNER_ORG_ID = '50e7756e-6359-4288-8e7f-be247f32bd71';
+
   useEffect(() => {
     const fetchUserRole = async () => {
       if (user?.id) {
         const { data } = await supabase
           .from('users')
-          .select('role')
+          .select('role, org_id')
           .eq('id', user.id)
           .single();
-        setUserRole(data?.role || null);
+        // Only show CRM for platform owner org members
+        setUserRole(data?.org_id === PLATFORM_OWNER_ORG_ID ? 'admin' : null);
       }
     };
     fetchUserRole();
