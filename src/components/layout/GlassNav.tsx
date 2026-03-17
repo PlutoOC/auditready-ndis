@@ -6,6 +6,7 @@ import {
   BookOpen,
   FileText,
   Calendar,
+  Users,
   Settings,
   LogOut,
   Menu,
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   { label: 'Modules', href: 'modules', icon: <BookOpen className="w-5 h-5" /> },
   { label: 'Evidence', href: 'evidence', icon: <FileText className="w-5 h-5" /> },
   { label: 'Audits', href: 'audits', icon: <Calendar className="w-5 h-5" /> },
+  { label: 'Team', href: 'team', icon: <Users className="w-5 h-5" /> },
 ];
 
 const GlassNav: React.FC<GlassNavProps> = ({

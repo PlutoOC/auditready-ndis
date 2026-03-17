@@ -9,11 +9,12 @@ import { ModulesPage } from '@/pages/dashboard/ModulesPage';
 import { ResponseEditorPage } from '@/pages/dashboard/ResponseEditorPage';
 import { EvidencePage } from '@/pages/dashboard/EvidencePage';
 import { AuditsPage } from '@/pages/dashboard/AuditsPage';
+import TeamPage from '@/pages/dashboard/TeamPage';
 import { SettingsPage } from '@/pages/Settings';
 import { supabase } from '@/lib/supabase';
 import './App.css';
 
-type Page = 'landing' | 'auth' | 'setup' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'settings' | 'module-detail' | 'response-editor';
+type Page = 'landing' | 'auth' | 'setup' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'team' | 'settings' | 'module-detail' | 'response-editor';
 
 interface PageParams {
   moduleId?: string;
@@ -146,6 +147,8 @@ function App() {
         return <EvidencePage />;
       case 'audits':
         return <AuditsPage />;
+      case 'team':
+        return <TeamPage />;
       case 'settings':
         return <SettingsPage />;
       default:
