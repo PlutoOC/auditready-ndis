@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GlassButton } from '@/components/glass/GlassButton';
 import { GlassCard } from '@/components/glass/GlassCard';
+import { ROICalculator } from '@/components/landing/ROICalculator';
 import { CheckCircle, FileText, Shield, BarChart3, Users, Clock, Sparkles } from 'lucide-react';
 
 interface LandingPageProps {
@@ -233,9 +234,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
               </span>
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-400 max-w-3xl mx-auto mb-10">
-              The complete internal audit tool for NDIS providers. Write self-assessment responses, 
+              The complete internal audit tool for NDIS providers. Write self-assessment responses,
               map evidence to Quality Indicators, and track compliance across all modules.
             </p>
+
+            {/* ROI Calculator */}
+            <div className="mb-10">
+              <ROICalculator onGetStarted={onGetStarted} />
+            </div>
+
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
                 <GlassButton onClick={onGetStarted} variant="primary" size="lg" className="shadow-lg shadow-indigo-500/25">
