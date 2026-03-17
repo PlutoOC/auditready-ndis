@@ -3,7 +3,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || 're_KGptTpQe_FPakiafuY4FXXkg939bEDpLX';
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const FROM_EMAIL = 'onboarding@auditreadyndis.com';
 const FROM_NAME = 'AuditReady NDIS';
 
