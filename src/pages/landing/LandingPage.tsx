@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GlassButton } from '@/components/glass/GlassButton';
 import { GlassCard } from '@/components/glass/GlassCard';
-import { ROICalculator } from '@/components/landing/ROICalculator';
+import { ProviderROICalculator } from '@/components/landing/ProviderROICalculator';
 import { CheckCircle, FileText, Shield, BarChart3, Users, Clock, Sparkles } from 'lucide-react';
 
 interface LandingPageProps {
@@ -238,9 +238,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
               map evidence to Quality Indicators, and track compliance across all modules.
             </p>
 
-            {/* ROI Calculator */}
+            {/* ROI Calculator for NDIS Providers */}
             <div className="mb-10">
-              <ROICalculator onGetStarted={onGetStarted} />
+              <ProviderROICalculator onGetStarted={onGetStarted} />
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
