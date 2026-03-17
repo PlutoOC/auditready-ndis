@@ -13,6 +13,7 @@ import { GlassButton } from '@/components/glass/GlassButton';
 import { ProgressBar, CircularProgress } from '@/components/glass/ProgressBar';
 import { GlassBadge } from '@/components/glass/GlassBadge';
 import { DashboardWidgets } from '@/components/dashboard/DashboardWidgets';
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
 import { supabase } from '@/lib/supabase';
 import { exportModuleToPDF, downloadBlob } from '@/services/exportService';
 
@@ -188,6 +189,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
             Track your NDIS Practice Standards compliance progress
           </p>
         </motion.div>
+
+        {/* Onboarding Checklist */}
+        <OnboardingChecklist onNavigate={onNavigate} onClose={() => {}} />
 
         {/* Stats Row */}
         <motion.div
