@@ -74,6 +74,8 @@ const EvidencePage: React.FC = () => {
   const [textDescription, setTextDescription] = useState('');
   const [urlCategory, setUrlCategory] = useState('policy');
   const [textCategory, setTextCategory] = useState('policy');
+  const [urlCustomCategory, setUrlCustomCategory] = useState('');
+  const [textCustomCategory, setTextCustomCategory] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -195,6 +197,7 @@ const EvidencePage: React.FC = () => {
 
   const handleAddUrl = async () => {
     if (!organization || !urlInput.trim()) return;
+    if (urlCategory === 'other' && !urlCustomCategory.trim()) return;
 
     try {
       const { data: evidenceData, error: dbError } = await supabase
@@ -205,7 +208,7 @@ const EvidencePage: React.FC = () => {
           storage_path: '',
           file_type: 'url',
           file_size: 0,
-          category: urlCategory,
+          category: urlCategory === 'other' ? urlCustomCategory.trim() : urlCategory,
           description: urlDescription,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id,
           evidence_type: 'url',
@@ -222,6 +225,7 @@ const EvidencePage: React.FC = () => {
       setFiles(prev => [evidenceData, ...prev]);
       setUrlInput('');
       setUrlDescription('');
+      setUrlCustomCategory('');
       setShowUploadZone(false);
     } catch (error) {
       console.error('Error adding URL:', error);
@@ -230,6 +234,7 @@ const EvidencePage: React.FC = () => {
 
   const handleAddText = async () => {
     if (!organization || !textInput.trim()) return;
+    if (textCategory === 'other' && !textCustomCategory.trim()) return;
 
     try {
       const { data: evidenceData, error: dbError } = await supabase
@@ -240,7 +245,7 @@ const EvidencePage: React.FC = () => {
           storage_path: '',
           file_type: 'text',
           file_size: textInput.length,
-          category: textCategory,
+          category: textCategory === 'other' ? textCustomCategory.trim() : textCategory,
           description: textDescription,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id,
           evidence_type: 'text',
@@ -257,6 +262,7 @@ const EvidencePage: React.FC = () => {
       setFiles(prev => [evidenceData, ...prev]);
       setTextInput('');
       setTextDescription('');
+      setTextCustomCategory('');
       setShowUploadZone(false);
     } catch (error) {
       console.error('Error adding text:', error);
@@ -405,7 +411,7 @@ const EvidencePage: React.FC = () => {
               leftIcon={<Upload className="w-4 h-4" />}
               onClick={() => setShowUploadZone(!showUploadZone)}
             >
-              {showUploadZone ? 'Cancel' : 'Upload Evidence'}
+              {showUploadZone ? 'Cancel' : 'Add Evidence'}
             </GlassButton>
           </div>
         </motion.div>
@@ -507,6 +513,20 @@ const EvidencePage: React.FC = () => {
                         ))}
                       </select>
                     </div>
+                    {urlCategory === 'other' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Specify Category *
+                        </label>
+                        <input
+                          type="text"
+                          value={urlCustomCategory}
+                          onChange={(e) => setUrlCustomCategory(e.target.value)}
+                          placeholder="What type of evidence is this?"
+                          className="w-full h-11 px-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                        />
+                      </div>
+                    )}
                     <div className="flex justify-end gap-3">
                       <GlassButton variant="secondary" onClick={() => setShowUploadZone(false)}>
                         Cancel
@@ -514,7 +534,7 @@ const EvidencePage: React.FC = () => {
                       <GlassButton
                         variant="primary"
                         onClick={handleAddUrl}
-                        disabled={!urlInput.trim()}
+                        disabled={!urlInput.trim() || (urlCategory === 'other' && !urlCustomCategory.trim())}
                       >
                         Add URL Evidence
                       </GlassButton>
@@ -560,6 +580,20 @@ const EvidencePage: React.FC = () => {
                         ))}
                       </select>
                     </div>
+                    {textCategory === 'other' && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Specify Category *
+                        </label>
+                        <input
+                          type="text"
+                          value={textCustomCategory}
+                          onChange={(e) => setTextCustomCategory(e.target.value)}
+                          placeholder="What type of evidence is this?"
+                          className="w-full h-11 px-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-[12px] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                        />
+                      </div>
+                    )}
                     <div className="flex justify-end gap-3">
                       <GlassButton variant="secondary" onClick={() => setShowUploadZone(false)}>
                         Cancel
