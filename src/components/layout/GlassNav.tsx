@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
+import { supabase } from '@/lib/supabase';
 
 interface NavItem {
   label: string;
@@ -52,6 +53,7 @@ const GlassNav: React.FC<GlassNavProps> = ({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,6 +62,20 @@ const GlassNav: React.FC<GlassNavProps> = ({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      if (user?.id) {
+        const { data } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        setUserRole(data?.role || null);
+      }
+    };
+    fetchUserRole();
+  }, [user]);
 
   return (
     <>
@@ -121,7 +137,7 @@ const GlassNav: React.FC<GlassNavProps> = ({
                 </button>
               ))}
               {/* Admin-only CRM link */}
-              {user?.role === 'admin' && adminNavItems.map((item) => (
+              {userRole === 'admin' && adminNavItems.map((item) => (
                 <button
                   key={item.href}
                   onClick={() => onNavigate(item.href)}
