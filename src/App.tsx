@@ -38,6 +38,15 @@ function App() {
   const [needsSetup, setNeedsSetup] = useState(false);
 
   useEffect(() => {
+    // Parse URL path to set initial page
+    const path = window.location.pathname.slice(1);
+    if (path && path !== '') {
+      const validPages: Page[] = ['dashboard', 'modules', 'evidence', 'audits', 'team', 'admin', 'settings', 'crm', 'crm-leads', 'crm-pipeline'];
+      if (validPages.includes(path as Page)) {
+        setCurrentPage(path as Page);
+      }
+    }
+
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -120,6 +129,8 @@ function App() {
 
   const handleNavigate = (page: string, params?: PageParams) => {
     setCurrentPage(page as Page);
+    // Update URL without reloading
+    window.history.pushState({}, '', `/${page}`);
     if (params) {
       setPageParams(params);
     } else {
