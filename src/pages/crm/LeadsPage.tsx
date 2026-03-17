@@ -19,23 +19,49 @@ export function LeadsPage({ onNavigate }: LeadsPageProps) {
     lead.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleAddLead = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError(null);
+    setIsSubmitting(true);
+    
     const formData = new FormData(e.currentTarget);
+    const organization_name = formData.get('organization_name') as string;
+    
+    if (!organization_name || organization_name.trim() === '') {
+      setFormError('Organization name is required');
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
-      await createLead({
-        organization_name: formData.get('organization_name') as string,
-        contact_name: formData.get('contact_name') as string,
-        email: formData.get('email') as string,
-        phone: formData.get('phone') as string,
-        source: formData.get('source') as any,
-        stage: 'new_lead',
-        notes: formData.get('notes') as string,
+      console.log('Creating lead with data:', {
+        organization_name,
+        contact_name: formData.get('contact_name'),
+        email: formData.get('email'),
+        source: formData.get('source'),
       });
+      
+      await createLead({
+        organization_name: organization_name.trim(),
+        contact_name: (formData.get('contact_name') as string)?.trim() || undefined,
+        email: (formData.get('email') as string)?.trim() || undefined,
+        phone: (formData.get('phone') as string)?.trim() || undefined,
+        source: (formData.get('source') as string) as any || undefined,
+        stage: 'new_lead',
+        notes: (formData.get('notes') as string)?.trim() || undefined,
+      });
+      
+      console.log('Lead created successfully');
       setShowAddModal(false);
+      (e.target as HTMLFormElement).reset();
     } catch (error) {
       console.error('Failed to create lead:', error);
+      setFormError(error instanceof Error ? error.message : 'Failed to create lead');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -178,6 +204,11 @@ export function LeadsPage({ onNavigate }: LeadsPageProps) {
             className="bg-white dark:bg-slate-800 rounded-xl p-6 w-full max-w-md"
           >
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">Add New Lead</h2>
+            {formError && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4">
+                {formError}
+              </div>
+            )}
             <form onSubmit={handleAddLead} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -249,15 +280,17 @@ export function LeadsPage({ onNavigate }: LeadsPageProps) {
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add Lead
+                  {isSubmitting ? 'Adding...' : 'Add Lead'}
                 </button>
               </div>
             </form>
