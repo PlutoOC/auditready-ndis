@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AuthScreen } from '@/pages/auth/AuthScreen';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { SetupPage } from '@/pages/setup/SetupPage';
-import { GlassNav } from '@/components/layout/GlassNav';
+import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ModulesPage } from '@/pages/dashboard/ModulesPage';
 import { ResponseEditorPage } from '@/pages/dashboard/ResponseEditorPage';
@@ -243,8 +243,8 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen">
-      <GlassNav
+    <div className="min-h-screen lg:pl-64">
+      <LeftSidebar
         user={user}
         onLogout={handleLogout}
         currentPage={currentPage}
