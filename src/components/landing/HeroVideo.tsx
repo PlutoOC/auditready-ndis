@@ -65,19 +65,19 @@ export function HeroVideo({ onGetStarted }: HeroVideoProps) {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 mb-6"
             >
-              <Sparkles className="w-4 h-4 text-yellow-400" />
+              <Sparkles className="w-4 h-4 text-amber-300" />
               <span className="text-sm font-medium text-white">Now with AI-Powered Compliance</span>
             </motion.div>
 
             {/* Headline */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-fuchsia-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-300 via-orange-300 to-amber-300">
                 Compliance
               </span>
               <span className="text-white"> + </span>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300">
                 AI
               </span>
               <br />
@@ -95,7 +95,7 @@ export function HeroVideo({ onGetStarted }: HeroVideoProps) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={onGetStarted}
-                className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-fuchsia-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25"
+                className="px-8 py-4 bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-rose-500/25"
               >
                 Start Free Trial
                 <ArrowRight className="w-5 h-5" />

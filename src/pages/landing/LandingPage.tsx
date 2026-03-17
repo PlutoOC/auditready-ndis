@@ -83,7 +83,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
       <TabbedPersonas onGetStarted={onGetStarted} />
 
       {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-br from-indigo-600 to-fuchsia-600">
+      <section className="py-24 bg-gradient-to-br from-rose-500 via-orange-500 to-amber-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -99,7 +99,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={onGetStarted}
-                className="px-8 py-4 bg-white text-indigo-600 font-semibold rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
+                className="px-8 py-4 bg-white text-rose-600 font-semibold rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-lg"
               >
                 Start Free Trial
                 <ArrowRight className="w-5 h-5" />

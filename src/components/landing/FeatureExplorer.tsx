@@ -13,8 +13,8 @@ const features = [
     subtitle: 'AI-Powered',
     description: 'Answer 308 Quality Indicators with intelligent guidance. AI suggests responses based on your evidence.',
     icon: <FileText className="w-8 h-8" />,
-    color: 'from-blue-500 to-cyan-500',
-    bgColor: 'bg-blue-500/10',
+    color: 'from-rose-400 to-orange-400',
+    bgColor: 'bg-rose-50',
     stats: { label: 'QIs Covered', value: '308' },
     image: '/features/assessment.jpg'
   },
@@ -24,8 +24,8 @@ const features = [
     subtitle: 'Smart Mapping',
     description: 'Upload once, use everywhere. Auto-maps policies, procedures, and records to relevant QIs.',
     icon: <Upload className="w-8 h-8" />,
-    color: 'from-purple-500 to-pink-500',
-    bgColor: 'bg-purple-500/10',
+    color: 'from-violet-400 to-purple-400',
+    bgColor: 'bg-violet-50',
     stats: { label: 'Time Saved', value: '80%' },
     image: '/features/evidence.jpg'
   },
@@ -35,8 +35,8 @@ const features = [
     subtitle: 'Real-time Insights',
     description: 'Track progress across all 8 modules. Identify gaps before your audit. Export ready-to-submit reports.',
     icon: <BarChart3 className="w-8 h-8" />,
-    color: 'from-orange-500 to-red-500',
-    bgColor: 'bg-orange-500/10',
+    color: 'from-amber-400 to-yellow-400',
+    bgColor: 'bg-amber-50',
     stats: { label: 'Modules', value: '8' },
     image: '/features/analytics.jpg'
   },
@@ -46,8 +46,8 @@ const features = [
     subtitle: 'Enterprise Grade',
     description: 'Bank-level encryption, role-based access, and complete audit trails. Your data stays yours.',
     icon: <Shield className="w-8 h-8" />,
-    color: 'from-green-500 to-emerald-500',
-    bgColor: 'bg-green-500/10',
+    color: 'from-teal-400 to-cyan-400',
+    bgColor: 'bg-teal-50',
     stats: { label: 'Compliance', value: '100%' },
     image: '/features/security.jpg'
   }
@@ -117,7 +117,7 @@ export function FeatureExplorer({ onTryFeature }: FeatureExplorerProps) {
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-fuchsia-600 transition-all duration-300">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-rose-500 group-hover:to-orange-500 transition-all duration-300">
                     {feature.title}
                   </h3>
                   <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
@@ -137,7 +137,7 @@ export function FeatureExplorer({ onTryFeature }: FeatureExplorerProps) {
                     <motion.button
                       whileHover={{ x: 5 }}
                       onClick={() => onTryFeature(feature.id)}
-                      className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      className="flex items-center gap-2 text-rose-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     >
                       Try it
                       <ArrowRight className="w-4 h-4" />
@@ -162,7 +162,7 @@ export function FeatureExplorer({ onTryFeature }: FeatureExplorerProps) {
         >
           <button
             onClick={() => onTryFeature('all')}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold rounded-xl hover:from-rose-600 hover:to-orange-600 transition-colors shadow-lg shadow-rose-500/25"
           >
             <Sparkles className="w-5 h-5" />
             Explore All Features
