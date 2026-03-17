@@ -124,20 +124,20 @@ const GlassNav: React.FC<GlassNavProps> = ({
             </motion.div>
 
             {/* Desktop Nav Items */}
-            <nav className="hidden md:flex items-center gap-1 overflow-x-auto">
+            <nav className="hidden md:flex items-center gap-0.5 overflow-x-auto">
               {navItems.map((item) => (
                 <button
                   key={item.href}
                   onClick={() => onNavigate(item.href)}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap',
+                    'flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap',
                     currentPage === item.href
                       ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
                   )}
                 >
-                  {item.icon}
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <span className="w-4 h-4">{item.icon}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
                 </button>
               ))}
               {/* Admin-only CRM link */}
@@ -146,14 +146,14 @@ const GlassNav: React.FC<GlassNavProps> = ({
                   key={item.href}
                   onClick={() => onNavigate(item.href)}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 whitespace-nowrap',
+                    'flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap',
                     currentPage === item.href
                       ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
                   )}
                 >
-                  {item.icon}
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <span className="w-4 h-4">{item.icon}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
                 </button>
               ))}
             </nav>
