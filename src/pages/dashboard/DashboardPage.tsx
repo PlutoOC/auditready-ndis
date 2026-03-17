@@ -319,7 +319,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               leftIcon={<FileText className="w-4 h-4" />}
               onClick={() => onNavigate('evidence')}
             >
-              Upload Evidence
+              Add Evidence
             </GlassButton>
             <GlassButton
               variant="secondary"

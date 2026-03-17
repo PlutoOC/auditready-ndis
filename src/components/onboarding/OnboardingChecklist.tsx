@@ -67,7 +67,7 @@ const checklistItems: ChecklistItem[] = [
     description: 'Add supporting documentation',
     icon: <Upload className="w-5 h-5" />,
     field: 'first_evidence_uploaded',
-    action: 'Upload Evidence',
+    action: 'Add Evidence',
     link: 'evidence'
   },
   {

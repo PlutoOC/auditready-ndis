@@ -539,7 +539,7 @@ const EnhancedResponseEditor: React.FC<EnhancedResponseEditorProps> = ({
                 className="mb-4"
                 onClick={() => setShowUploadZone(!showUploadZone)}
               >
-                {showUploadZone ? 'Cancel Upload' : 'Upload Evidence'}
+                {showUploadZone ? 'Cancel' : 'Add Evidence'}
               </GlassButton>
 
               <AnimatePresence>
