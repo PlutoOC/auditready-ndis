@@ -12,16 +12,21 @@ import { AuditsPage } from '@/pages/dashboard/AuditsPage';
 import TeamPage from '@/pages/dashboard/TeamPage';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import { SettingsPage } from '@/pages/Settings';
+import { CRMPage } from '@/pages/crm/CRMPage';
+import { LeadsPage } from '@/pages/crm/LeadsPage';
+import { PipelinePage } from '@/pages/crm/PipelinePage';
+import { LeadDetailPage } from '@/pages/crm/LeadDetailPage';
 import { supabase } from '@/lib/supabase';
 import './App.css';
 
-type Page = 'landing' | 'auth' | 'setup' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'team' | 'admin' | 'settings' | 'module-detail' | 'response-editor';
+type Page = 'landing' | 'auth' | 'setup' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'team' | 'admin' | 'settings' | 'module-detail' | 'response-editor' | 'crm' | 'crm-leads' | 'crm-pipeline' | 'crm-lead-detail';
 
 interface PageParams {
   moduleId?: string;
   outcomeId?: string;
   qiId?: string;
   authMode?: 'login' | 'signup';
+  leadId?: string;
 }
 
 function App() {
@@ -154,6 +159,17 @@ function App() {
         return <AdminDashboard />;
       case 'settings':
         return <SettingsPage />;
+      case 'crm':
+        return <CRMPage onNavigate={handleNavigate} />;
+      case 'crm-leads':
+        return <LeadsPage onNavigate={handleNavigate} />;
+      case 'crm-pipeline':
+        return <PipelinePage onNavigate={handleNavigate} />;
+      case 'crm-lead-detail':
+        if (pageParams.leadId) {
+          return <LeadDetailPage leadId={pageParams.leadId} onNavigate={handleNavigate} />;
+        }
+        return <LeadsPage onNavigate={handleNavigate} />;
       default:
         return <DashboardPage onNavigate={handleNavigate} />;
     }

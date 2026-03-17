@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  Briefcase,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
@@ -36,6 +37,10 @@ const navItems: NavItem[] = [
   { label: 'Evidence', href: 'evidence', icon: <FileText className="w-5 h-5" /> },
   { label: 'Audits', href: 'audits', icon: <Calendar className="w-5 h-5" /> },
   { label: 'Team', href: 'team', icon: <Users className="w-5 h-5" /> },
+];
+
+const adminNavItems: NavItem[] = [
+  { label: 'CRM', href: 'crm', icon: <Briefcase className="w-5 h-5" /> },
 ];
 
 const GlassNav: React.FC<GlassNavProps> = ({
@@ -101,6 +106,22 @@ const GlassNav: React.FC<GlassNavProps> = ({
             {/* Desktop Nav Items */}
             <nav className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (
+                <button
+                  key={item.href}
+                  onClick={() => onNavigate(item.href)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
+                    currentPage === item.href
+                      ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-200'
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ))}
+              {/* Admin-only CRM link */}
+              {user?.role === 'admin' && adminNavItems.map((item) => (
                 <button
                   key={item.href}
                   onClick={() => onNavigate(item.href)}
