@@ -14,31 +14,31 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => {
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800"
+        className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900 dark:text-white">AuditReady NDIS</span>
+              <span className="text-xl font-bold text-slate-900">AuditReady NDIS</span>
             </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={onSignIn}
-                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium transition-colors"
+                className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
               >
                 Sign In
               </button>
               <button
                 onClick={onGetStarted}
-                className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium rounded-lg hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+                className="px-4 py-2 bg-emerald-700 text-white font-medium rounded-lg hover:bg-emerald-800 transition-colors"
               >
                 Get Started
               </button>
@@ -47,22 +47,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
         </div>
       </motion.nav>
 
-      {/* Hero Section with Video */}
+      {/* Hero Section */}
       <div className="pt-16">
         <HeroVideo onGetStarted={onGetStarted} />
       </div>
 
       {/* ROI Calculator */}
-      <section className="py-24 bg-slate-50 dark:bg-slate-900">
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
               Calculate your{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-600">
-                time savings
-              </span>
+              <span className="text-emerald-700">time savings</span>
             </h2>
-            <p className="text-xl text-slate-600 dark:text-slate-400">
+            <p className="text-xl text-slate-600">
               See how much faster NDIS compliance can be
             </p>
           </div>
@@ -83,7 +81,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
       <TabbedPersonas onGetStarted={onGetStarted} />
 
       {/* Final CTA */}
-      <section className="py-24 bg-gradient-to-br from-rose-500 via-orange-500 to-amber-500">
+      <section className="py-24 bg-gradient-to-br from-emerald-700 to-teal-700">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -99,7 +97,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={onGetStarted}
-                className="px-8 py-4 bg-white text-rose-600 font-semibold rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 shadow-lg"
+                className="px-8 py-4 bg-white text-emerald-700 font-semibold rounded-xl hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
               >
                 Start Free Trial
                 <ArrowRight className="w-5 h-5" />
@@ -119,14 +117,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-slate-900 text-slate-400">
+      <footer className="py-12 bg-slate-50 text-slate-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-400 to-orange-400 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <span className="text-white font-semibold">AuditReady NDIS</span>
+              <span className="text-slate-900 font-semibold">AuditReady NDIS</span>
             </div>
             <p className="text-sm">
               © 2026 AuditReady NDIS. All rights reserved.

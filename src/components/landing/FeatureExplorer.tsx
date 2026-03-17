@@ -57,7 +57,7 @@ export function FeatureExplorer({ onTryFeature }: FeatureExplorerProps) {
   const [hoveredFeature, setHoveredFeature] = useState<string | null>(null);
 
   return (
-    <section className="py-24 bg-slate-50 dark:bg-slate-900">
+    <section className="py-24 bg-gradient-to-b from-white to-rose-50/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -117,7 +117,7 @@ export function FeatureExplorer({ onTryFeature }: FeatureExplorerProps) {
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-rose-500 group-hover:to-orange-500 transition-all duration-300">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3 group-hover:text-emerald-700 transition-all duration-300">
                     {feature.title}
                   </h3>
                   <p className="text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
@@ -137,7 +137,7 @@ export function FeatureExplorer({ onTryFeature }: FeatureExplorerProps) {
                     <motion.button
                       whileHover={{ x: 5 }}
                       onClick={() => onTryFeature(feature.id)}
-                      className="flex items-center gap-2 text-rose-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      className="flex items-center gap-2 text-emerald-700 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     >
                       Try it
                       <ArrowRight className="w-4 h-4" />
@@ -162,7 +162,7 @@ export function FeatureExplorer({ onTryFeature }: FeatureExplorerProps) {
         >
           <button
             onClick={() => onTryFeature('all')}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold rounded-xl hover:from-rose-600 hover:to-orange-600 transition-colors shadow-lg shadow-rose-500/25"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-700 text-white font-semibold rounded-xl hover:bg-emerald-800 transition-colors shadow-lg shadow-emerald-700/25"
           >
             <Sparkles className="w-5 h-5" />
             Explore All Features
