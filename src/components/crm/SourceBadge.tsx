@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { LeadSource, SOURCE_LABELS } from '@/types/crm';
+import type { LeadSource } from '@/types/crm';
+import { SOURCE_LABELS } from '@/types/crm';
 
 interface SourceBadgeProps {
   source: LeadSource;
@@ -9,12 +10,11 @@ interface SourceBadgeProps {
 }
 
 const sourceColors: Record<LeadSource, string> = {
-  website: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+  ndis_register: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
   referral: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  linkedin: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   event: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   cold_outreach: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
-  partner: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  website: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
   other: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
 };
 

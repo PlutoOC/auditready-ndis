@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCRM } from '@/hooks/useCRM';
-import { Lead, LeadStage, STAGE_LABELS, STAGE_COLORS, SOURCE_LABELS } from '@/types/crm';
-import { Plus, Search, Filter, MoreVertical, Phone, Mail, Calendar } from 'lucide-react';
+import { STAGE_LABELS, STAGE_COLORS, SOURCE_LABELS } from '@/types/crm';
+import { Plus, Search, Filter, MoreVertical, Phone, Mail } from 'lucide-react';
 
 interface LeadsPageProps {
   onNavigate: (page: string, params?: any) => void;
 }
 
 export function LeadsPage({ onNavigate }: LeadsPageProps) {
-  const { leads, loading, createLead, updateLead, deleteLead } = useCRM();
+  const { leads, loading, createLead } = useCRM();
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingLead, setEditingLead] = useState<Lead | null>(null);
 
   const filteredLeads = leads.filter(lead =>
     lead.organization_name.toLowerCase().includes(searchTerm.toLowerCase()) ||

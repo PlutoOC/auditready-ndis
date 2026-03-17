@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCRM } from '@/hooks/useCRM';
-import { Lead, LeadStage, STAGE_LABELS, STAGE_COLORS } from '@/types/crm';
+import type { Lead, LeadStage } from '@/types/crm';
+import { STAGE_LABELS } from '@/types/crm';
 import { ArrowLeft, MoreHorizontal } from 'lucide-react';
 
 interface PipelinePageProps {

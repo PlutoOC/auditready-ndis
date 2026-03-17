@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-import { Lead, Activity, ActivityType, STAGE_LABELS, SOURCE_LABELS, ACTIVITY_LABELS, ACTIVITY_ICONS } from '@/types/crm';
+import type { Lead, Activity } from '@/types/crm';
+import { STAGE_LABELS, SOURCE_LABELS, ACTIVITY_LABELS, ACTIVITY_ICONS } from '@/types/crm';
 import { ArrowLeft, Phone, Mail, Calendar, Edit2, Save, X, Plus } from 'lucide-react';
 
 interface LeadDetailPageProps {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { LeadStage, STAGE_LABELS, STAGE_COLORS } from '@/types/crm';
+import type { LeadStage } from '@/types/crm';
+import { STAGE_LABELS, STAGE_COLORS } from '@/types/crm';
 
 interface StageBadgeProps {
   stage: LeadStage;

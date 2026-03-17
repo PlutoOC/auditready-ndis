@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Lead, LeadStage, CRMStats, STAGE_LABELS } from '@/types/crm';
+import type { Lead, LeadStage, CRMStats } from '@/types/crm';
 
 export function useCRM() {
   const [leads, setLeads] = useState<Lead[]>([]);
