@@ -42,7 +42,7 @@ function App() {
     // Parse URL path to set initial page
     const path = window.location.pathname.slice(1);
     if (path && path !== '') {
-      const validPages: Page[] = ['dashboard', 'modules', 'evidence', 'audits', 'team', 'admin', 'settings', 'crm', 'crm-leads', 'crm-pipeline'];
+      const validPages: Page[] = ['dashboard', 'modules', 'evidence', 'audits', 'team', 'admin', 'settings', 'crm', 'crm-leads', 'crm-pipeline', 'crm-analytics', 'crm-lead-detail'];
       if (validPages.includes(path as Page)) {
         setCurrentPage(path as Page);
       }
