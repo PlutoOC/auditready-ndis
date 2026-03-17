@@ -218,7 +218,7 @@ export const TeamManagement: React.FC = () => {
       <GlassCard variant="frosted" padding="lg" radius="xl">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-            <Users className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <Users className="w-5 h-5 text-emerald-700 dark:text-emerald-600" />
           </div>
           <div>
             <h3 className="font-semibold text-slate-900 dark:text-slate-100">

@@ -432,7 +432,7 @@ const EvidencePage: React.FC = () => {
                     onClick={() => setEvidenceType('file')}
                     className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
                       evidenceType === 'file'
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-emerald-700 text-white'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                     }`}
                   >
@@ -443,7 +443,7 @@ const EvidencePage: React.FC = () => {
                     onClick={() => setEvidenceType('url')}
                     className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
                       evidenceType === 'url'
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-emerald-700 text-white'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                     }`}
                   >
@@ -454,7 +454,7 @@ const EvidencePage: React.FC = () => {
                     onClick={() => setEvidenceType('text')}
                     className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
                       evidenceType === 'text'
-                        ? 'bg-indigo-600 text-white'
+                        ? 'bg-emerald-700 text-white'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200'
                     }`}
                   >
@@ -694,7 +694,7 @@ const EvidencePage: React.FC = () => {
                           ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                           : file.evidence_type === 'text'
                           ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                          : 'bg-indigo-100 dark:bg-indigo-900/30 text-emerald-700 dark:text-emerald-600'
                       }`}>
                         {getFileIcon(file)}
                       </div>
@@ -716,7 +716,7 @@ const EvidencePage: React.FC = () => {
                         {fileMappings.length > 0 && (
                           <div className="flex items-center gap-1 mt-2">
                             <LinkIcon className="w-3 h-3 text-indigo-500" />
-                            <span className="text-xs text-indigo-600 dark:text-indigo-400">
+                            <span className="text-xs text-emerald-700 dark:text-emerald-600">
                               Mapped to {fileMappings.length} Quality Indicator{fileMappings.length !== 1 ? 's' : ''}
                             </span>
                           </div>

@@ -289,7 +289,7 @@ const EnhancedResponseEditor: React.FC<EnhancedResponseEditorProps> = ({
       title={tooltip}
       className={`p-2 rounded-lg transition-all duration-200 ${
         active
-          ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+          ? 'bg-indigo-100 dark:bg-indigo-900/30 text-emerald-700 dark:text-emerald-600'
           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
       }`}
     >
@@ -577,7 +577,7 @@ const EnhancedResponseEditor: React.FC<EnhancedResponseEditorProps> = ({
                       className="p-3 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl group"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-600 flex-shrink-0">
                           <FileText className="w-5 h-5" />
                         </div>
                         <div className="flex-1 min-w-0">

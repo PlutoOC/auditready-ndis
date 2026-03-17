@@ -114,7 +114,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBackToLanding,
       {/* Animated Orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute w-[600px] h-[600px] rounded-full bg-indigo-400/20 dark:bg-indigo-600/20 blur-[100px]"
+          className="absolute w-[600px] h-[600px] rounded-full bg-indigo-400/20 dark:bg-emerald-700/20 blur-[100px]"
           animate={{
             x: ['-20%', '10%', '-20%'],
             y: ['-10%', '20%', '-10%'],
@@ -306,15 +306,15 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBackToLanding,
                   id="terms"
                   checked={agreeToTerms}
                   onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                  className="mt-1 w-4 h-4 rounded border-slate-300 text-emerald-700 focus:ring-indigo-500"
                 />
                 <label htmlFor="terms" className="text-sm text-slate-600 dark:text-slate-400">
                   I agree to the{' '}
-                  <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                  <a href="#" className="text-emerald-700 hover:text-indigo-500">
                     Terms of Service
                   </a>{' '}
                   and{' '}
-                  <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                  <a href="#" className="text-emerald-700 hover:text-indigo-500">
                     Privacy Policy
                   </a>
                 </label>
@@ -347,7 +347,7 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBackToLanding,
             <div className="mt-6 text-center">
               <a
                 href="#"
-                className="text-sm text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                className="text-sm text-slate-500 dark:text-slate-400 hover:text-emerald-700 dark:hover:text-emerald-600 transition-colors"
               >
                 Forgot your password?
               </a>
@@ -358,11 +358,11 @@ const AuthScreen: React.FC<AuthScreenProps> = ({ onAuthSuccess, onBackToLanding,
         {/* Footer Text */}
         <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
           By using this service, you agree to our{' '}
-          <a href="#" className="text-indigo-600 hover:text-indigo-500">
+          <a href="#" className="text-emerald-700 hover:text-indigo-500">
             Terms
           </a>{' '}
           and{' '}
-          <a href="#" className="text-indigo-600 hover:text-indigo-500">
+          <a href="#" className="text-emerald-700 hover:text-indigo-500">
             Privacy Policy
           </a>
         </p>

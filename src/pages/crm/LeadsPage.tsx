@@ -84,7 +84,7 @@ export function LeadsPage({ onNavigate }: LeadsPageProps) {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Add Lead
@@ -186,7 +186,7 @@ export function LeadsPage({ onNavigate }: LeadsPageProps) {
               <p className="text-slate-500 dark:text-slate-400">No leads found</p>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="mt-4 text-indigo-600 dark:text-indigo-400 hover:underline"
+                className="mt-4 text-emerald-700 dark:text-emerald-600 hover:underline"
               >
                 Add your first lead
               </button>
@@ -288,7 +288,7 @@ export function LeadsPage({ onNavigate }: LeadsPageProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Adding...' : 'Add Lead'}
                 </button>

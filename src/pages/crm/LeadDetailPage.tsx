@@ -134,7 +134,7 @@ export function LeadDetailPage({ leadId, onNavigate }: LeadDetailPageProps) {
           </div>
           <button
             onClick={() => setEditing(!editing)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors"
           >
             {editing ? <X className="w-4 h-4" /> : <Edit2 className="w-4 h-4" />}
             {editing ? 'Cancel' : 'Edit'}
@@ -202,7 +202,7 @@ export function LeadDetailPage({ leadId, onNavigate }: LeadDetailPageProps) {
                   <div className="flex gap-3">
                     <button
                       type="submit"
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                      className="flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800"
                     >
                       <Save className="w-4 h-4" />
                       Save Changes
@@ -259,7 +259,7 @@ export function LeadDetailPage({ leadId, onNavigate }: LeadDetailPageProps) {
                 <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Activity History</h2>
                 <button
                   onClick={() => setShowActivityModal(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-emerald-700 text-white text-sm rounded-lg hover:bg-emerald-800"
                 >
                   <Plus className="w-4 h-4" />
                   Add Activity
@@ -406,7 +406,7 @@ export function LeadDetailPage({ leadId, onNavigate }: LeadDetailPageProps) {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                  className="flex-1 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800"
                 >
                   Add Activity
                 </button>

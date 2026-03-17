@@ -49,7 +49,7 @@ export function CRMPage({ onNavigate }: CRMPageProps) {
           <div className="flex gap-3">
             <button
               onClick={() => onNavigate('crm-leads')}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+              className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors"
             >
               View Leads
             </button>
@@ -103,7 +103,7 @@ export function CRMPage({ onNavigate }: CRMPageProps) {
                 transition={{ delay: index * 0.05 }}
                 className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg"
               >
-                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stat.count}</p>
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-600">{stat.count}</p>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{STAGE_LABELS[stat.stage]}</p>
               </motion.div>
             ))}
@@ -119,7 +119,7 @@ export function CRMPage({ onNavigate }: CRMPageProps) {
             </p>
             <button
               onClick={() => onNavigate('crm-leads')}
-              className="mt-4 text-indigo-600 dark:text-indigo-400 hover:underline text-sm"
+              className="mt-4 text-emerald-700 dark:text-emerald-600 hover:underline text-sm"
             >
               Go to Leads →
             </button>
@@ -131,7 +131,7 @@ export function CRMPage({ onNavigate }: CRMPageProps) {
             </p>
             <button
               onClick={() => onNavigate('crm-pipeline')}
-              className="mt-4 text-indigo-600 dark:text-indigo-400 hover:underline text-sm"
+              className="mt-4 text-emerald-700 dark:text-emerald-600 hover:underline text-sm"
             >
               View Pipeline →
             </button>

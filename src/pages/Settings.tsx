@@ -551,7 +551,7 @@ const SettingsPage: React.FC = () => {
                       <GlassCard key={user.id} padding="lg">
                         <div className="flex items-center justify-between flex-wrap gap-4">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-fuchsia-100 dark:from-indigo-900/30 dark:to-fuchsia-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-semibold">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-fuchsia-100 dark:from-indigo-900/30 dark:to-fuchsia-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-600 font-semibold">
                               {getInitials(user)}
                             </div>
                             <div>
@@ -622,7 +622,7 @@ const SettingsPage: React.FC = () => {
                         return (
                           <div key={item.key} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl">
                             <div className="flex items-start gap-3">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isEnabled ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isEnabled ? 'bg-indigo-100 dark:bg-indigo-900/30 text-emerald-700 dark:text-emerald-600' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}`}>
                                 <Icon className="w-5 h-5" />
                               </div>
                               <div>
@@ -680,7 +680,7 @@ const SettingsPage: React.FC = () => {
                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${isSelected ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
                               <Icon className="w-6 h-6" />
                             </div>
-                            <p className={`font-semibold mb-1 ${isSelected ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-900 dark:text-slate-100'}`}>{option.label}</p>
+                            <p className={`font-semibold mb-1 ${isSelected ? 'text-emerald-700 dark:text-emerald-600' : 'text-slate-900 dark:text-slate-100'}`}>{option.label}</p>
                             <p className="text-sm text-slate-500">{option.description}</p>
                           </button>
                         );

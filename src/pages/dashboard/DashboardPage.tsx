@@ -238,7 +238,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                     {stats.completedModules}/{stats.totalModules}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-600">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
               </div>

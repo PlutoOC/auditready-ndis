@@ -56,7 +56,7 @@ export const EvidenceSuggestions: React.FC<EvidenceSuggestionsProps> = ({
 
           <button
             onClick={onUploadClick}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors text-sm font-medium"
           >
             <Upload className="w-4 h-4" />
             Add Evidence

@@ -154,7 +154,7 @@ export function TabbedPersonas({ onGetStarted }: TabbedPersonasProps) {
               </div>
 
               <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-800">
-                <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium mb-2">
+                <p className="text-sm text-emerald-700 dark:text-emerald-600 font-medium mb-2">
                   Key Benefit
                 </p>
                 <p className="text-xl font-semibold text-slate-900 dark:text-white">

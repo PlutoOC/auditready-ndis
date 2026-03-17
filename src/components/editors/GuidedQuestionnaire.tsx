@@ -228,7 +228,7 @@ export const GuidedQuestionnaire: React.FC<GuidedQuestionnaireProps> = ({
                 type="checkbox"
                 checked={customizationConfirmed}
                 onChange={(e) => setCustomizationConfirmed(e.target.checked)}
-                className="mt-1 w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                className="mt-1 w-4 h-4 text-emerald-700 border-slate-300 rounded focus:ring-indigo-500"
               />
               <div>
                 <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -349,7 +349,7 @@ export const GuidedQuestionnaire: React.FC<GuidedQuestionnaireProps> = ({
 
       {/* Tips */}
       <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-2">
+        <h4 className="text-sm font-medium text-emerald-800 dark:text-indigo-300 mb-2">
           💡 Tips for Better Responses
         </h4>
         <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">

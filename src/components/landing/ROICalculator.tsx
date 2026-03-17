@@ -55,7 +55,7 @@ export function ROICalculator({ onGetStarted }: ROICalculatorProps) {
                   className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
                 <div className="w-20 text-center">
-                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                  <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-600">
                     {providers}
                   </span>
                   <span className="text-xs text-slate-500 block">providers</span>
@@ -78,7 +78,7 @@ export function ROICalculator({ onGetStarted }: ROICalculatorProps) {
                   className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
                 <div className="w-20 text-center">
-                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                  <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-600">
                     {auditsPerYear}
                   </span>
                   <span className="text-xs text-slate-500 block">audits</span>
@@ -96,7 +96,7 @@ export function ROICalculator({ onGetStarted }: ROICalculatorProps) {
               <div className="text-center">
                 <FileText className="w-5 h-5 text-slate-400 mx-auto mb-1" />
                 <p className="text-xs text-slate-500">With AuditReady</p>
-                <p className="font-semibold text-indigo-600 dark:text-indigo-400">8 hrs/audit</p>
+                <p className="font-semibold text-emerald-700 dark:text-emerald-600">8 hrs/audit</p>
               </div>
               <div className="text-center">
                 <Users className="w-5 h-5 text-slate-400 mx-auto mb-1" />

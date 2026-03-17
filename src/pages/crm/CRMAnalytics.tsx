@@ -162,7 +162,7 @@ export function CRMAnalytics({ onNavigate }: CRMAnalyticsProps) {
                       </div>
                       <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                         <div
-                          className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                          className="bg-emerald-700 h-2 rounded-full transition-all duration-300"
                           style={{ width: `${percentage}%` }}
                         />
                       </div>
@@ -213,7 +213,7 @@ export function CRMAnalytics({ onNavigate }: CRMAnalyticsProps) {
                 transition={{ delay: index * 0.05 }}
                 className="text-center p-4 bg-slate-50 dark:bg-slate-700 rounded-lg"
               >
-                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stat.count}</p>
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-600">{stat.count}</p>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{STAGE_LABELS[stat.stage]}</p>
               </motion.div>
             ))}

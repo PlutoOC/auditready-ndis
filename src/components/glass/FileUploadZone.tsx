@@ -184,7 +184,7 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
               <div className={cn(
                 'w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-colors',
                 isDragOver
-                  ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
+                  ? 'bg-indigo-100 dark:bg-indigo-900/50 text-emerald-700 dark:text-emerald-600'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500'
               )}>
                 <Upload className="w-8 h-8" />

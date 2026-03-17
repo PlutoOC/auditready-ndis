@@ -14,8 +14,8 @@ const glassBadgeVariants = cva(
           'border-slate-500/20 dark:border-slate-400/20',
         ],
         primary: [
-          'bg-indigo-500/10 dark:bg-indigo-400/10',
-          'text-indigo-700 dark:text-indigo-300',
+          'bg-emerald-50 dark:bg-indigo-400/10',
+          'text-emerald-800 dark:text-indigo-300',
           'border-indigo-500/20 dark:border-indigo-400/20',
         ],
         success: [

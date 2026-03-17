@@ -70,7 +70,7 @@ export function LogoMarquee() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 text-center">
         <a
           href="#integrations"
-          className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+          className="text-emerald-700 dark:text-emerald-600 font-medium hover:underline"
         >
           See all integrations →
         </a>

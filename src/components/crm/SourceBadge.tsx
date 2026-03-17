@@ -10,7 +10,7 @@ interface SourceBadgeProps {
 }
 
 const sourceColors: Record<LeadSource, string> = {
-  ndis_register: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300',
+  ndis_register: 'bg-indigo-100 text-emerald-800 dark:bg-indigo-900/30 dark:text-indigo-300',
   referral: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   event: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   cold_outreach: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',

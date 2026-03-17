@@ -485,7 +485,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                         value={option.value}
                         checked={isSelected}
                         onChange={() => setResponse(prev => ({ ...prev, rating: option.value }))}
-                        className="mt-1 w-4 h-4 text-indigo-600"
+                        className="mt-1 w-4 h-4 text-emerald-700"
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -525,7 +525,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                             ...prev,
                             triangulation: { ...(prev.triangulation || { participants: false, staff: false, documents: false }), [key]: e.target.checked }
                           }))}
-                          className="w-4 h-4 text-indigo-600 rounded"
+                          className="w-4 h-4 text-emerald-700 rounded"
                         />
                         <Icon className="w-4 h-4 text-slate-400" />
                         <span className="text-sm text-slate-600 dark:text-slate-400">{item.label}</span>
@@ -718,7 +718,7 @@ const ResponseEditorPage: React.FC<ResponseEditorPageProps> = ({
                   radius="lg"
                   className="flex items-center gap-3"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-600">
                     <FileText className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">

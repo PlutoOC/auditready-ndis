@@ -406,7 +406,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
               orgData.registrationPath === 'certification' 
                 ? 'bg-indigo-500 text-white' 
-                : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400'
+                : 'bg-indigo-100 dark:bg-indigo-900/30 text-emerald-700 dark:text-emerald-600'
             }`}>
               <Shield className="w-6 h-6" />
             </div>
@@ -692,7 +692,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ onComplete }) => {
                   return module ? (
                     <span 
                       key={moduleId}
-                      className="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                      className="text-xs px-2 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-emerald-800 dark:text-indigo-300"
                     >
                       {module.code}: {module.name}
                     </span>

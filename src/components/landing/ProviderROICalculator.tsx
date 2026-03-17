@@ -206,7 +206,7 @@ export function ProviderROICalculator({ onGetStarted }: ProviderROICalculatorPro
                   className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                 />
                 <div className="w-24 text-center">
-                  <span className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+                  <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-600">
                     {staffCount}
                   </span>
                   <span className="text-xs text-slate-500 block">staff</span>
@@ -263,7 +263,7 @@ export function ProviderROICalculator({ onGetStarted }: ProviderROICalculatorPro
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-slate-400">Time per QI (with AuditReady)</span>
-                <span className="font-semibold text-indigo-600 dark:text-indigo-400">{hoursPerQI_Tool} hours</span>
+                <span className="font-semibold text-emerald-700 dark:text-emerald-600">{hoursPerQI_Tool} hours</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-600 dark:text-slate-400">Total Quality Indicators</span>

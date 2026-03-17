@@ -151,20 +151,20 @@ export function OnboardingChecklist({ onNavigate }: OnboardingChecklistProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 mb-6"
+      className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-6"
     >
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-slate-900">
             Welcome to AuditReady! 👋
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-slate-600 mt-1">
             Complete these steps to get the most out of your 14-day trial
           </p>
         </div>
         <button
           onClick={() => setDismissed(true)}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
         >
           <X className="w-5 h-5 text-slate-400" />
         </button>
@@ -173,16 +173,16 @@ export function OnboardingChecklist({ onNavigate }: OnboardingChecklistProps) {
       {/* Progress bar */}
       <div className="mb-6">
         <div className="flex justify-between text-sm mb-2">
-          <span className="text-slate-600 dark:text-slate-400">
+          <span className="text-slate-600">
             {completedCount} of {totalCount} completed
           </span>
-          <span className="font-medium text-indigo-600 dark:text-indigo-400">
+          <span className="font-medium text-emerald-600">
             {progress}%
           </span>
         </div>
-        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+        <div className="w-full bg-slate-200 rounded-full h-2">
           <div
-            className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+            className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -201,12 +201,12 @@ export function OnboardingChecklist({ onNavigate }: OnboardingChecklistProps) {
               transition={{ delay: index * 0.1 }}
               className={`flex items-center gap-4 p-4 rounded-lg border transition-all ${
                 isCompleted
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                  : 'bg-slate-50 dark:bg-slate-700/50 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700'
+                  ? 'bg-emerald-50 border-emerald-200'
+                  : 'bg-white border-slate-200 hover:border-emerald-300'
               }`}
             >
               <div className={`flex-shrink-0 ${
-                isCompleted ? 'text-green-600' : 'text-slate-400'
+                isCompleted ? 'text-emerald-600' : 'text-slate-400'
               }`}>
                 {isCompleted ? (
                   <CheckCircle2 className="w-6 h-6" />
@@ -217,8 +217,8 @@ export function OnboardingChecklist({ onNavigate }: OnboardingChecklistProps) {
               
               <div className={`flex-shrink-0 p-2 rounded-lg ${
                 isCompleted 
-                  ? 'bg-green-100 dark:bg-green-900/30 text-green-600' 
-                  : 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600'
+                  ? 'bg-emerald-100 text-emerald-600' 
+                  : 'bg-rose-100 text-rose-500'
               }`}>
                 {item.icon}
               </div>
@@ -226,12 +226,12 @@ export function OnboardingChecklist({ onNavigate }: OnboardingChecklistProps) {
               <div className="flex-1">
                 <h3 className={`font-medium ${
                   isCompleted 
-                    ? 'text-green-700 dark:text-green-400 line-through' 
-                    : 'text-slate-900 dark:text-white'
+                    ? 'text-emerald-700 line-through' 
+                    : 'text-slate-900'
                 }`}>
                   {item.label}
                 </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-slate-500">
                   {item.description}
                 </p>
               </div>
@@ -239,7 +239,7 @@ export function OnboardingChecklist({ onNavigate }: OnboardingChecklistProps) {
               {!isCompleted && (
                 <button
                   onClick={() => onNavigate(item.link)}
-                  className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+                  className="px-4 py-2 bg-emerald-700 text-white text-sm rounded-lg hover:bg-emerald-800 transition-colors"
                 >
                   {item.action}
                 </button>
