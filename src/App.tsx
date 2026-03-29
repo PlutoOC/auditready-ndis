@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AuthScreen } from '@/pages/auth/AuthScreen';
 import { LandingPage } from '@/pages/landing/LandingPage';
+import PricingPage from '@/pages/landing/PricingPage';
 import { SetupPage } from '@/pages/setup/SetupPage';
 import { LeftSidebar } from '@/components/layout/LeftSidebar';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ModulesPage } from '@/pages/dashboard/ModulesPage';
 import { ResponseEditorPage } from '@/pages/dashboard/ResponseEditorPage';
 import { EvidencePage } from '@/pages/dashboard/EvidencePage';
-import { AuditsPage } from '@/pages/dashboard/AuditsPage';
 import TeamPage from '@/pages/dashboard/TeamPage';
+import { AuditsListPage } from '@/pages/audits/AuditsListPage';
+import { AuditCreatePage } from '@/pages/audits/AuditCreatePage';
+import { AuditEditPage } from '@/pages/audits/AuditEditPage';
+import { AuditViewPage } from '@/pages/audits/AuditViewPage';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import { SettingsPage } from '@/pages/Settings';
 import { CRMPage } from '@/pages/crm/CRMPage';
@@ -20,7 +24,28 @@ import { CRMAnalytics } from '@/pages/crm/CRMAnalytics';
 import { supabase } from '@/lib/supabase';
 import './App.css';
 
-type Page = 'landing' | 'auth' | 'setup' | 'dashboard' | 'modules' | 'evidence' | 'audits' | 'team' | 'admin' | 'settings' | 'module-detail' | 'response-editor' | 'crm' | 'crm-leads' | 'crm-pipeline' | 'crm-lead-detail' | 'crm-analytics';
+type Page =
+  | 'landing'
+  | 'pricing'
+  | 'auth'
+  | 'setup'
+  | 'dashboard'
+  | 'modules'
+  | 'evidence'
+  | 'audits'
+  | 'audits-new'
+  | 'audits-edit'
+  | 'audits-view'
+  | 'team'
+  | 'admin'
+  | 'settings'
+  | 'module-detail'
+  | 'response-editor'
+  | 'crm'
+  | 'crm-leads'
+  | 'crm-pipeline'
+  | 'crm-lead-detail'
+  | 'crm-analytics';
 
 interface PageParams {
   moduleId?: string;
@@ -28,6 +53,7 @@ interface PageParams {
   qiId?: string;
   authMode?: 'login' | 'signup';
   leadId?: string;
+  auditId?: string;
 }
 
 function App() {
@@ -40,11 +66,28 @@ function App() {
 
   useEffect(() => {
     // Parse URL path to set initial page
-    const path = window.location.pathname.slice(1);
-    if (path && path !== '') {
-      const validPages: Page[] = ['dashboard', 'modules', 'evidence', 'audits', 'team', 'admin', 'settings', 'crm', 'crm-leads', 'crm-pipeline', 'crm-analytics', 'crm-lead-detail'];
-      if (validPages.includes(path as Page)) {
-        setCurrentPage(path as Page);
+    const rawPath = window.location.pathname.replace(/^\/+/, '');
+    if (rawPath) {
+      const segments = rawPath.split('/').filter(Boolean);
+      if (segments[0] === 'audits') {
+        if (segments.length === 1) {
+          setCurrentPage('audits');
+        } else if (segments[1] === 'new') {
+          setCurrentPage('audits-new');
+        } else {
+          const targetId = segments[1];
+          setPageParams((prev) => ({ ...prev, auditId: targetId }));
+          if (segments[2] === 'view') {
+            setCurrentPage('audits-view');
+          } else {
+            setCurrentPage('audits-edit');
+          }
+        }
+      } else {
+        const validPages: Page[] = ['dashboard', 'modules', 'evidence', 'team', 'admin', 'settings', 'crm', 'crm-leads', 'crm-pipeline', 'crm-analytics', 'crm-lead-detail', 'pricing'];
+        if (segments[0] && validPages.includes(segments[0] as Page)) {
+          setCurrentPage(segments[0] as Page);
+        }
       }
     }
 
@@ -86,14 +129,55 @@ function App() {
 
       if (!userData?.org_id) {
         setNeedsSetup(true);
-        setCurrentPage('setup');
-      } else {
-        setNeedsSetup(false);
+        handleNavigate('setup');
+        return;
       }
+
+      const { data: orgData, error: orgError } = await supabase
+        .from('organizations')
+        .select('id, legal_name, business_name, abn, address_line1, suburb, state, postcode, phone, email')
+        .eq('id', userData.org_id)
+        .maybeSingle();
+
+      if (orgError || !orgData) {
+        await supabase
+          .from('users')
+          .update({ org_id: null, updated_at: new Date().toISOString() })
+          .eq('id', userId);
+        setNeedsSetup(true);
+        handleNavigate('setup');
+        return;
+      }
+
+      const requiredFields: Array<keyof typeof orgData> = [
+        'legal_name',
+        'business_name',
+        'abn',
+        'address_line1',
+        'suburb',
+        'state',
+        'postcode',
+        'phone',
+        'email',
+      ];
+      const missingFields = requiredFields.filter((field) => {
+        const value = orgData[field];
+        return !value || (typeof value === 'string' && value.trim().length === 0);
+      });
+
+      if (missingFields.length > 0) {
+        setNeedsSetup(false);
+        if (currentPage !== 'settings') {
+          handleNavigate('settings');
+        }
+        return;
+      }
+
+      setNeedsSetup(false);
     } catch (error) {
       console.error('Error checking user setup:', error);
       setNeedsSetup(true);
-      setCurrentPage('setup');
+      handleNavigate('setup');
     } finally {
       setLoading(false);
     }
@@ -120,6 +204,12 @@ function App() {
     setCurrentPage('dashboard');
   };
 
+  const handleOrganizationUpdated = () => {
+    if (user?.id) {
+      checkUserSetup(user.id);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSession(null);
@@ -128,15 +218,27 @@ function App() {
     setCurrentPage('landing');
   };
 
-  const handleNavigate = (page: string, params?: PageParams) => {
-    setCurrentPage(page as Page);
-    // Update URL without reloading
-    window.history.pushState({}, '', `/${page}`);
-    if (params) {
-      setPageParams(params);
-    } else {
-      setPageParams({});
+  const buildPathForPage = (page: Page, params?: PageParams) => {
+    switch (page) {
+      case 'audits':
+        return '/audits';
+      case 'audits-new':
+        return '/audits/new';
+      case 'audits-edit':
+        return params?.auditId ? `/audits/${params.auditId}` : '/audits';
+      case 'audits-view':
+        return params?.auditId ? `/audits/${params.auditId}/view` : '/audits';
+      default:
+        return `/${page}`;
     }
+  };
+
+  const handleNavigate = (page: string, params?: PageParams) => {
+    const nextPage = page as Page;
+    setCurrentPage(nextPage);
+    const nextParams = params || {};
+    setPageParams(nextParams);
+    window.history.pushState({}, '', buildPathForPage(nextPage, nextParams));
   };
 
   const renderPage = () => {
@@ -164,13 +266,25 @@ function App() {
       case 'evidence':
         return <EvidencePage />;
       case 'audits':
-        return <AuditsPage />;
+        return <AuditsListPage onNavigate={handleNavigate} />;
+      case 'audits-new':
+        return <AuditCreatePage onNavigate={handleNavigate} />;
+      case 'audits-edit':
+        if (pageParams.auditId) {
+          return <AuditEditPage auditId={pageParams.auditId} onNavigate={handleNavigate} />;
+        }
+        return <AuditsListPage onNavigate={handleNavigate} />;
+      case 'audits-view':
+        if (pageParams.auditId) {
+          return <AuditViewPage auditId={pageParams.auditId} onNavigate={handleNavigate} />;
+        }
+        return <AuditsListPage onNavigate={handleNavigate} />;
       case 'team':
         return <TeamPage />;
       case 'admin':
         return <AdminDashboard />;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage onOrganizationUpdated={handleOrganizationUpdated} />;
       case 'crm':
         return <CRMPage onNavigate={handleNavigate} />;
       case 'crm-leads':
@@ -213,9 +327,27 @@ function App() {
             setPageParams({ authMode: 'login' });
             setCurrentPage('auth');
           }}
+          onViewPricing={() => setCurrentPage('pricing')}
         />
       );
     }
+
+    if (currentPage === 'pricing') {
+      return (
+        <PricingPage
+          onBackToLanding={() => setCurrentPage('landing')}
+          onSignup={() => {
+            setPageParams({ authMode: 'signup' });
+            setCurrentPage('auth');
+          }}
+          onSignIn={() => {
+            setPageParams({ authMode: 'login' });
+            setCurrentPage('auth');
+          }}
+        />
+      );
+    }
+
     return (
       <AuthScreen
         onAuthSuccess={handleAuthSuccess}

@@ -21,7 +21,7 @@ CRON_SECRET=your-random-secret-here
 |-----|-------|---------|
 | 0 | Welcome | Trial starts (stage = 'trial_started') |
 | 7 | Check-in | Scheduled 7 days after trial start |
-| 13 | Trial ending | 1 day before trial_ends_at |
+| 13 | Trial ending (links to pricing page) | 1 day before trial_ends_at |
 
 ## Cron Job Setup
 
@@ -40,3 +40,5 @@ Or use Supabase cron extension (if available).
 2. Move lead to "Trial Started" stage
 3. Check email_queue table for queued emails
 4. Manually trigger edge function to send
+
+> The day-13 "trial ending" email now promotes the live pricing page (`/pricing?plan=growth`) with a primary upgrade button so leads can convert straight into Stripe Checkout.

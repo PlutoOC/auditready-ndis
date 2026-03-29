@@ -7,6 +7,9 @@ import {
   CreditCard,
   TrendingUp,
   CheckCircle2,
+  PieChart,
+  ClipboardList,
+  Layers,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { supabase } from '@/lib/supabase';
@@ -29,6 +32,32 @@ interface Stats {
   totalQIsCompleted: number;
 }
 
+interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  organization?: string;
+  status: 'active' | 'inactive';
+  lastLogin?: string | null;
+  created_at: string;
+}
+
+interface ModuleContentSummary {
+  id: string;
+  code: string;
+  name: string;
+  outcomeCount: number;
+  qiCount: number;
+}
+
+interface AnalyticsBreakdown {
+  activeTrials: number;
+  payingCustomers: number;
+  evidencePerOrg: number;
+  averageCompletion: number;
+}
+
 const AdminDashboard: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [stats, setStats] = useState<Stats>({
@@ -37,6 +66,14 @@ const AdminDashboard: React.FC = () => {
     totalUsers: 0,
     totalEvidence: 0,
     totalQIsCompleted: 0,
+  });
+  const [usersList, setUsersList] = useState<AdminUser[]>([]);
+  const [contentSummaries, setContentSummaries] = useState<ModuleContentSummary[]>([]);
+  const [analyticsBreakdown, setAnalyticsBreakdown] = useState<AnalyticsBreakdown>({
+    activeTrials: 0,
+    payingCustomers: 0,
+    evidencePerOrg: 0,
+    averageCompletion: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -85,12 +122,63 @@ const AdminDashboard: React.FC = () => {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'completed');
 
+      const { count: totalResponses } = await supabase
+        .from('self_assessment_responses')
+        .select('*', { count: 'exact', head: true });
+
       setStats({
         totalOrganizations: orgsCount || 0,
         activeOrganizations: orgsCount || 0, // All are active for now
         totalUsers: usersCount || 0,
         totalEvidence: evidenceCount || 0,
         totalQIsCompleted: completedQIs || 0,
+      });
+
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, email, first_name, last_name, role, is_active, last_login_at, created_at, organizations:org_id ( business_name )')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      const formattedUsers: AdminUser[] = (usersData || []).map((user: any) => ({
+        id: user.id,
+        email: user.email,
+        name: user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.email,
+        role: user.role,
+        organization: user.organizations?.business_name,
+        status: user.is_active ? 'active' : 'inactive',
+        lastLogin: user.last_login_at,
+        created_at: user.created_at,
+      }));
+      setUsersList(formattedUsers);
+
+      const { data: modulesData } = await supabase
+        .from('modules')
+        .select('id, code, name, outcomes(id, code, name, quality_indicators(id))')
+        .order('display_order');
+
+      const formattedContent: ModuleContentSummary[] = (modulesData || []).map((module: any) => ({
+        id: module.id,
+        code: module.code,
+        name: module.name,
+        outcomeCount: module.outcomes?.length || 0,
+        qiCount: module.outcomes?.reduce(
+          (acc: number, outcome: any) => acc + (outcome.quality_indicators?.length || 0),
+          0
+        ) || 0,
+      }));
+      setContentSummaries(formattedContent);
+
+      const activeTrials = orgsWithEmail.filter((org) => org.subscription_status === 'trialing').length;
+      const payingCustomers = orgsWithEmail.filter((org) => ['active', 'past_due'].includes(org.subscription_status)).length;
+      const evidencePerOrg = orgsCount ? Math.round((evidenceCount || 0) / orgsCount) : 0;
+      const averageCompletion = totalResponses ? Math.round(((completedQIs || 0) / totalResponses) * 100) : 0;
+
+      setAnalyticsBreakdown({
+        activeTrials,
+        payingCustomers,
+        evidencePerOrg,
+        averageCompletion,
       });
     } catch (error) {
       console.error('Error fetching admin data:', error);
@@ -227,6 +315,150 @@ const AdminDashboard: React.FC = () => {
             </GlassCard>
           </motion.div>
         </div>
+
+        {/* Platform Analytics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mb-8"
+        >
+          <GlassCard padding="lg" radius="xl">
+            <div className="flex items-center gap-3 mb-6">
+              <PieChart className="w-5 h-5 text-slate-500" />
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">System Analytics</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[{
+                label: 'Active Trials',
+                value: analyticsBreakdown.activeTrials,
+                description: 'Organizations still in trial',
+                icon: PieChart,
+                accent: 'bg-indigo-100 text-indigo-700',
+              }, {
+                label: 'Paying Customers',
+                value: analyticsBreakdown.payingCustomers,
+                description: 'Active Stripe subscriptions',
+                icon: CreditCard,
+                accent: 'bg-emerald-100 text-emerald-700',
+              }, {
+                label: 'Avg Evidence / Org',
+                value: analyticsBreakdown.evidencePerOrg,
+                description: 'Evidence density',
+                icon: ClipboardList,
+                accent: 'bg-blue-100 text-blue-700',
+              }, {
+                label: 'Avg QI Completion',
+                value: `${analyticsBreakdown.averageCompletion}%`,
+                description: 'Self-assessment progress',
+                icon: Layers,
+                accent: 'bg-amber-100 text-amber-700',
+              }].map((metric) => {
+                const Icon = metric.icon;
+                return (
+                  <div key={metric.label} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/30 border border-slate-100 dark:border-slate-800">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${metric.accent}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <p className="text-sm text-slate-500">{metric.label}</p>
+                    <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{metric.value}</p>
+                    <p className="text-xs text-slate-500 mt-1">{metric.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </GlassCard>
+        </motion.div>
+
+        {/* User Management Snapshot */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="mb-8"
+        >
+          <GlassCard padding="lg" radius="xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Users className="w-5 h-5 text-slate-500" />
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recent Users</h3>
+                  <p className="text-sm text-slate-500">Latest invites across organizations</p>
+                </div>
+              </div>
+            </div>
+            {usersList.length === 0 ? (
+              <p className="text-sm text-slate-500">No users found.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="text-left text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200 dark:border-slate-700">
+                      <th className="py-3">User</th>
+                      <th className="py-3">Organization</th>
+                      <th className="py-3">Role</th>
+                      <th className="py-3">Last Active</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersList.slice(0, 6).map((user) => (
+                      <tr key={user.id} className="border-b border-slate-100 dark:border-slate-800">
+                        <td className="py-3">
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{user.name}</p>
+                          <p className="text-xs text-slate-500">{user.email}</p>
+                        </td>
+                        <td className="py-3 text-sm text-slate-700 dark:text-slate-300">{user.organization || '—'}</td>
+                        <td className="py-3 text-sm capitalize">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${user.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="py-3 text-sm text-slate-500">
+                          {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </GlassCard>
+        </motion.div>
+
+        {/* Content Management */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mb-8"
+        >
+          <GlassCard padding="lg" radius="xl">
+            <div className="flex items-center gap-3 mb-6">
+              <Layers className="w-5 h-5 text-slate-500" />
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Modules & Quality Indicators</h3>
+                <p className="text-sm text-slate-500">Read-only snapshot of the Practice Standards library</p>
+              </div>
+            </div>
+            {contentSummaries.length === 0 ? (
+              <p className="text-sm text-slate-500">No modules loaded.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {contentSummaries.map((module) => (
+                  <div key={module.id} className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30">
+                    <p className="text-sm uppercase tracking-[0.2em] text-slate-500">{module.code}</p>
+                    <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{module.name}</p>
+                    <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+                      <span>{module.outcomeCount} outcomes</span>
+                      <span>•</span>
+                      <span>{module.qiCount} QIs</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </GlassCard>
+        </motion.div>
 
         {/* Organizations List */}
         <motion.div

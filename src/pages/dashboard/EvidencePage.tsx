@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
@@ -36,6 +37,7 @@ interface EvidenceFile {
   storage_path: string;
   status?: 'draft' | 'under_review' | 'approved' | 'rejected' | 'expired';
   reviewer?: { email: string };
+  reviewer_name?: string;
   evidence_type: 'file' | 'url' | 'text';
   url?: string;
   text_content?: string;
@@ -55,6 +57,31 @@ const EVIDENCE_CATEGORIES = [
   { value: 'report', label: 'Report', color: 'bg-rose-100 text-rose-700' },
   { value: 'other', label: 'Other', color: 'bg-slate-100 text-slate-700' },
 ];
+
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB per file
+const FILE_ACCEPT_STRING = '.pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.csv,.txt,.ppt,.pptx';
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'image/png',
+  'image/jpeg',
+  'text/plain',
+  'text/csv',
+];
+
+const EVIDENCE_BUCKET_CANDIDATES = ['evidence', 'evidence-files'];
+
+const isFileTypeAllowed = (file: File) => {
+  if (ALLOWED_FILE_TYPES.includes(file.type)) return true;
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  if (!extension) return false;
+  return FILE_ACCEPT_STRING.split(',').some((ext) => ext.replace('.', '').toLowerCase() === extension);
+};
 
 const EvidencePage: React.FC = () => {
   const [files, setFiles] = useState<EvidenceFile[]>([]);
@@ -76,49 +103,107 @@ const EvidencePage: React.FC = () => {
   const [textCategory, setTextCategory] = useState('policy');
   const [urlCustomCategory, setUrlCustomCategory] = useState('');
   const [textCustomCategory, setTextCustomCategory] = useState('');
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [bucketError, setBucketError] = useState<string | null>(null);
+  const [storageBucketId, setStorageBucketId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchData();
+  const ensureEvidenceBucket = useCallback(async (orgFolder: string) => {
+    try {
+      for (const bucketId of EVIDENCE_BUCKET_CANDIDATES) {
+        const { error } = await supabase.storage
+          .from(bucketId)
+          .list(orgFolder || '', { limit: 1 });
+
+        if (!error) {
+          setBucketError(null);
+          setStorageBucketId(bucketId);
+          return true;
+        }
+
+        const message = error.message?.toLowerCase() || '';
+        if (message.includes('permission') || message.includes('row level security')) {
+          setBucketError('You do not have permission to access evidence storage. Please contact your administrator.');
+          setStorageBucketId(null);
+          return false;
+        }
+
+        // For missing bucket, continue checking other candidates
+        if (message.includes('not found') || message.includes('does not exist')) {
+          continue;
+        }
+
+        console.error(`Error checking evidence bucket ${bucketId}:`, error);
+        setBucketError('Unable to verify evidence storage right now. Please try again later.');
+        setStorageBucketId(null);
+        return false;
+      }
+
+      setBucketError('Evidence storage bucket is not configured yet. Please contact support.');
+      setStorageBucketId(null);
+      return false;
+    } catch (error) {
+      console.error('Error checking evidence bucket:', error);
+      setBucketError('Unable to verify evidence storage right now. Please try again later.');
+      setStorageBucketId(null);
+      return false;
+    }
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setCurrentUser(user);
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('org_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.org_id) {
+        setOrganization(null);
+        setStorageBucketId(null);
+        setBucketError('You need to join an organization before uploading evidence.');
+        return;
+      }
 
       const { data: orgData } = await supabase
         .from('organizations')
         .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false })
+        .eq('id', profile.org_id)
         .maybeSingle();
-      
-      setOrganization(orgData);
 
-      // Fetch evidence files with reviewer info
-      const { data: filesData } = orgData?.id
-        ? await supabase
-            .from('evidence_files')
-            .select(`
-              *,
-              reviewer:reviewed_by(email)
-            `)
-            .eq('organization_id', orgData.id)
-            .eq('is_active', true)
-            .order('uploaded_at', { ascending: false })
-        : { data: [] };
-      
-      // Process files to add reviewer_name
-      const processedFiles = filesData?.map((file: any) => ({
-        ...file,
-        reviewer_name: file.reviewer?.email?.split('@')[0] || 'Unknown'
-      })) || [];
-
-      if (processedFiles) {
-        setFiles(processedFiles);
+      if (!orgData) {
+        setOrganization(null);
+        setStorageBucketId(null);
+        setBucketError('Organization record is missing. Please complete setup in Settings.');
+        return;
       }
 
-      // Fetch quality indicators for mapping
+      setOrganization(orgData);
+
+      await ensureEvidenceBucket(orgData.id);
+
+      const { data: filesData } = await supabase
+        .from('evidence_files')
+        .select(`
+          *,
+          reviewer:reviewed_by(email)
+        `)
+        .eq('organization_id', orgData.id)
+        .eq('is_active', true)
+        .order('uploaded_at', { ascending: false });
+
+      const processedFiles = (filesData || []).map((file: any) => ({
+        ...file,
+        reviewer_name: file.reviewer?.email?.split('@')[0] || 'Unknown',
+      }));
+      setFiles(processedFiles);
+
       const { data: qiData } = await supabase
         .from('quality_indicators')
         .select('id, code, text');
@@ -127,46 +212,87 @@ const EvidencePage: React.FC = () => {
         setQualityIndicators(qiData);
       }
 
-      // Fetch existing mappings
-      const { data: mappingsData } = await supabase
-        .from('evidence_qi_mappings')
-        .select('evidence_file_id, quality_indicator_id');
+      const fileIds = processedFiles.map((file) => file.id);
+      if (fileIds.length > 0) {
+        const { data: mappingsData } = await supabase
+          .from('evidence_qi_mappings')
+          .select('evidence_file_id, quality_indicator_id')
+          .in('evidence_file_id', fileIds);
 
-      if (mappingsData) {
-        const mappings: Record<string, string[]> = {};
-        mappingsData.forEach((m: any) => {
-          if (!mappings[m.evidence_file_id]) {
-            mappings[m.evidence_file_id] = [];
-          }
-          mappings[m.evidence_file_id].push(m.quality_indicator_id);
-        });
-        setMappedQIs(mappings);
+        if (mappingsData) {
+          const mappings: Record<string, string[]> = {};
+          mappingsData.forEach((m: any) => {
+            if (!mappings[m.evidence_file_id]) {
+              mappings[m.evidence_file_id] = [];
+            }
+            mappings[m.evidence_file_id].push(m.quality_indicator_id);
+          });
+          setMappedQIs(mappings);
+        }
+      } else {
+        setMappedQIs({});
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
-  };
+  }, [ensureEvidenceBucket]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+
 
   const handleFilesSelected = useCallback(async (selectedFiles: File[]) => {
-    if (!organization) return;
-    
-    for (const file of selectedFiles) {
+    if (!organization || !currentUser || selectedFiles.length === 0) return;
+    if (bucketError) {
+      setUploadError(bucketError);
+      return;
+    }
+    if (!storageBucketId) {
+      setUploadError('Evidence storage is not available. Please contact support.');
+      return;
+    }
+
+    const bucketId = storageBucketId;
+
+    setUploadError(null);
+    setIsUploading(true);
+    let successes = 0;
+    const failures: string[] = [];
+
+    for (let index = 0; index < selectedFiles.length; index++) {
+      const file = selectedFiles[index];
+
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        failures.push(`${file.name} exceeds the 50MB limit`);
+        continue;
+      }
+
+      if (!isFileTypeAllowed(file)) {
+        failures.push(`${file.name} is not an accepted file type`);
+        continue;
+      }
+
       try {
+        setUploadStatus(`Uploading ${file.name} (${index + 1}/${selectedFiles.length})`);
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${organization.id}/${fileName}`;
 
-        // Upload to storage
         const { error: uploadError } = await supabase.storage
-          .from('evidence-files')
-          .upload(filePath, file);
+          .from(bucketId)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
+          failures.push(`${file.name} failed to upload`);
           continue;
         }
 
-        // Create database record
         const { data: evidenceData, error: dbError } = await supabase
           .from('evidence_files')
           .insert([{
@@ -176,27 +302,46 @@ const EvidencePage: React.FC = () => {
             file_type: file.type,
             file_size: file.size,
             category: 'other',
-            uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+            uploaded_by: currentUser.id,
+            evidence_type: 'file',
+            is_active: true,
           }])
           .select()
           .single();
 
-        if (dbError) {
+        if (dbError || !evidenceData) {
           console.error('Database error:', dbError);
+          failures.push(`${file.name} could not be saved`);
           continue;
         }
 
-        setFiles(prev => [evidenceData, ...prev]);
+        setFiles((prev) => [
+          {
+            ...evidenceData,
+            reviewer_name: 'Unassigned',
+          },
+          ...prev,
+        ]);
+        successes += 1;
       } catch (error) {
         console.error('Error uploading file:', error);
+        failures.push(`${file.name} could not be uploaded`);
       }
     }
 
+    setIsUploading(false);
+    setUploadStatus(successes > 0 ? `${successes} file(s) uploaded successfully` : '');
+    if (failures.length > 0) {
+      setUploadError(failures.join(', '));
+    } else {
+      setUploadError(null);
+    }
+    setTimeout(() => setUploadStatus(''), 4000);
     setShowUploadZone(false);
-  }, [organization]);
+  }, [organization, currentUser, bucketError, storageBucketId]);
 
   const handleAddUrl = async () => {
-    if (!organization || !urlInput.trim()) return;
+    if (!organization || !currentUser || !urlInput.trim()) return;
     if (urlCategory === 'other' && !urlCustomCategory.trim()) return;
 
     try {
@@ -210,9 +355,10 @@ const EvidencePage: React.FC = () => {
           file_size: 0,
           category: urlCategory === 'other' ? urlCustomCategory.trim() : urlCategory,
           description: urlDescription,
-          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          uploaded_by: currentUser.id,
           evidence_type: 'url',
           url: urlInput,
+          is_active: true,
         }])
         .select()
         .single();
@@ -222,7 +368,13 @@ const EvidencePage: React.FC = () => {
         return;
       }
 
-      setFiles(prev => [evidenceData, ...prev]);
+      setFiles(prev => [
+        {
+          ...evidenceData,
+          reviewer_name: 'Unassigned',
+        },
+        ...prev,
+      ]);
       setUrlInput('');
       setUrlDescription('');
       setUrlCustomCategory('');
@@ -233,7 +385,7 @@ const EvidencePage: React.FC = () => {
   };
 
   const handleAddText = async () => {
-    if (!organization || !textInput.trim()) return;
+    if (!organization || !currentUser || !textInput.trim()) return;
     if (textCategory === 'other' && !textCustomCategory.trim()) return;
 
     try {
@@ -247,9 +399,10 @@ const EvidencePage: React.FC = () => {
           file_size: textInput.length,
           category: textCategory === 'other' ? textCustomCategory.trim() : textCategory,
           description: textDescription,
-          uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          uploaded_by: currentUser.id,
           evidence_type: 'text',
           text_content: textInput,
+          is_active: true,
         }])
         .select()
         .single();
@@ -259,7 +412,13 @@ const EvidencePage: React.FC = () => {
         return;
       }
 
-      setFiles(prev => [evidenceData, ...prev]);
+      setFiles(prev => [
+        {
+          ...evidenceData,
+          reviewer_name: 'Unassigned',
+        },
+        ...prev,
+      ]);
       setTextInput('');
       setTextDescription('');
       setTextCustomCategory('');
@@ -274,10 +433,12 @@ const EvidencePage: React.FC = () => {
     if (!file) return;
 
     try {
-      // Delete from storage
-      await supabase.storage
-        .from('evidence-files')
-        .remove([file.storage_path]);
+      // Delete from storage if file exists
+      if (file.storage_path && storageBucketId) {
+        await supabase.storage
+          .from(storageBucketId)
+          .remove([file.storage_path]);
+      }
 
       // Soft delete in database
       await supabase
@@ -465,13 +626,29 @@ const EvidencePage: React.FC = () => {
 
                 {/* File Upload */}
                 {evidenceType === 'file' && (
-                  <FileUploadZone
-                    onFilesSelected={handleFilesSelected}
-                    accept="*/*"
-                    multiple
-                    label="Drop evidence files here or click to browse"
-                    sublabel="All file types accepted up to 50MB"
-                  />
+                  <div>
+                    <FileUploadZone
+                      onFilesSelected={handleFilesSelected}
+                      accept={FILE_ACCEPT_STRING}
+                      multiple
+                      maxSize={MAX_FILE_SIZE_BYTES}
+                      disabled={isUploading || !!bucketError}
+                      label="Drop evidence files here or click to browse"
+                      sublabel="PDF, Word, Excel, or images up to 50MB each"
+                    />
+                    {bucketError && (
+                      <p className="mt-3 text-sm text-rose-500">{bucketError}</p>
+                    )}
+                    {uploadStatus && (
+                      <p className="mt-3 text-sm text-slate-500 flex items-center gap-2">
+                        {isUploading && <Loader2 className="w-4 h-4 animate-spin" />}
+                        <span>{uploadStatus}</span>
+                      </p>
+                    )}
+                    {uploadError && !bucketError && (
+                      <p className="mt-2 text-sm text-rose-500">{uploadError}</p>
+                    )}
+                  </div>
                 )}
 
                 {/* URL Input */}

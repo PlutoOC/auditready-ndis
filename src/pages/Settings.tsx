@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Building2,
@@ -17,6 +17,9 @@ import {
   CheckCircle,
   UserPlus,
   Calendar,
+  CreditCard,
+  Receipt,
+  RefreshCw,
 } from 'lucide-react';
 import { GlassCard } from '@/components/glass/GlassCard';
 import { GlassButton } from '@/components/glass/GlassButton';
@@ -24,10 +27,16 @@ import { GlassInput } from '@/components/glass/GlassInput';
 import { GlassBadge } from '@/components/glass/GlassBadge';
 import { GlassModal } from '@/components/glass/GlassModal';
 import { supabase } from '@/lib/supabase';
+import { getBillingSnapshot, getPlanOptions, startCheckoutSession } from '@/services/billingService';
+import type { BillingSnapshot, BillingHistoryEntry, SubscriptionStatus } from '@/services/billingService';
 
-type Tab = 'profile' | 'users' | 'notifications' | 'appearance';
+type Tab = 'profile' | 'users' | 'notifications' | 'appearance' | 'billing';
 type Theme = 'light' | 'dark' | 'system';
 type UserRole = 'admin' | 'manager' | 'user' | 'auditor';
+
+interface SettingsPageProps {
+  onOrganizationUpdated?: () => void;
+}
 
 interface Organization {
   id: string;
@@ -43,6 +52,21 @@ interface Organization {
   email: string;
   website: string;
 }
+
+const createEmptyOrganization = (): Organization => ({
+  id: '',
+  legal_name: '',
+  business_name: '',
+  abn: '',
+  address_line1: '',
+  address_line2: '',
+  suburb: '',
+  state: '',
+  postcode: '',
+  phone: '',
+  email: '',
+  website: '',
+});
 
 interface TeamUser {
   id: string;
@@ -62,25 +86,75 @@ interface NotificationPreferences {
   team_activity: boolean;
 }
 
-const SettingsPage: React.FC = () => {
+const mockBillingHistory: BillingHistoryEntry[] = [
+  {
+    id: 'mock-trial',
+    status: 'trialing',
+    planName: '14-Day Trial',
+    amount: 0,
+    currency: 'AUD',
+    interval: 'monthly',
+    created_at: new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString(),
+    current_period_end: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'mock-upgrade',
+    status: 'active',
+    planName: 'Starter Plan',
+    amount: 14900,
+    currency: 'AUD',
+    interval: 'monthly',
+    created_at: new Date().toISOString(),
+    current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+];
+
+const formatCurrency = (value?: number, currency = 'AUD') => {
+  if (!value) return new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(0);
+  return new Intl.NumberFormat('en-AU', { style: 'currency', currency }).format(value / 100);
+};
+
+const formatDate = (date?: string | null) => {
+  if (!date) return '—';
+  return new Date(date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const getStatusStyles = (status: SubscriptionStatus) => {
+  switch (status) {
+    case 'active':
+      return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+    case 'trialing':
+      return 'bg-indigo-100 text-indigo-700 border border-indigo-200';
+    case 'past_due':
+      return 'bg-amber-100 text-amber-700 border border-amber-200';
+    case 'canceled':
+      return 'bg-rose-100 text-rose-700 border border-rose-200';
+    default:
+      return 'bg-slate-100 text-slate-600 border border-slate-200';
+  }
+};
+
+const getStatusLabel = (status: SubscriptionStatus) => {
+  switch (status) {
+    case 'trialing':
+      return 'Trialing';
+    case 'active':
+      return 'Active';
+    case 'past_due':
+      return 'Past Due';
+    case 'canceled':
+      return 'Cancelled';
+    default:
+      return 'Pending';
+  }
+};
+
+const SettingsPage: React.FC<SettingsPageProps> = ({ onOrganizationUpdated }) => {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>('user');
   
-  const [organization, setOrganization] = useState<Organization>({
-    id: '',
-    legal_name: '',
-    business_name: '',
-    abn: '',
-    address_line1: '',
-    address_line2: '',
-    suburb: '',
-    state: '',
-    postcode: '',
-    phone: '',
-    email: '',
-    website: '',
-  });
+  const [organization, setOrganization] = useState<Organization>(() => createEmptyOrganization());
   const [originalOrg, setOriginalOrg] = useState<Organization | null>(null);
   const [isSavingOrg, setIsSavingOrg] = useState(false);
   const [hasOrgChanges, setHasOrgChanges] = useState(false);
@@ -105,6 +179,25 @@ const SettingsPage: React.FC = () => {
   const [hasNotificationChanges, setHasNotificationChanges] = useState(false);
   
   const [theme, setTheme] = useState<Theme>('system');
+  const [billingSnapshot, setBillingSnapshot] = useState<BillingSnapshot>({ summary: null, history: [] });
+  const [isBillingLoading, setIsBillingLoading] = useState(true);
+  const [billingError, setBillingError] = useState<string | null>(null);
+  const [billingSuccess, setBillingSuccess] = useState<string | null>(null);
+  const [isCheckoutStarting, setIsCheckoutStarting] = useState(false);
+  const planOptions = useMemo(() => getPlanOptions(), []);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(planOptions[1]?.id || planOptions[0]?.id || 'starter-monthly');
+  const [hasRealHistory, setHasRealHistory] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgrade') === 'success') {
+      setBillingSuccess('Your subscription was upgraded successfully.');
+      params.delete('upgrade');
+      const query = params.toString();
+      const newUrl = `${window.location.pathname}${query ? `?${query}` : ''}`;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
 
   useEffect(() => {
     initializeSettings();
@@ -139,18 +232,51 @@ const SettingsPage: React.FC = () => {
       
       if (userData) {
         setCurrentUserRole(userData.role as UserRole);
-        await fetchOrganization(userData.org_id);
-        await fetchUsers(userData.org_id);
+        if (userData.org_id) {
+          await fetchOrganization(userData.org_id);
+          await fetchUsers(userData.org_id);
+        } else {
+          const emptyOrg = createEmptyOrganization();
+          setOrganization(emptyOrg);
+          setOriginalOrg(emptyOrg);
+          setUsers([]);
+        }
         await fetchNotificationPreferences(user.id);
       }
       
       loadThemePreference();
+      await refreshBillingSnapshot();
     } catch (error) {
       console.error('Error initializing settings:', error);
     }
   };
 
-  const fetchOrganization = async (orgId: string) => {
+  const refreshBillingSnapshot = async () => {
+    setIsBillingLoading(true);
+    setBillingError(null);
+    try {
+      const snapshot = await getBillingSnapshot();
+      setBillingSnapshot(snapshot);
+      setHasRealHistory((snapshot.history || []).length > 0);
+      if (snapshot.summary?.planId) {
+        setSelectedPlanId(snapshot.summary.planId);
+      }
+    } catch (error) {
+      console.error('Error loading billing details:', error);
+      setBillingError(error instanceof Error ? error.message : 'Unable to load billing details');
+    } finally {
+      setIsBillingLoading(false);
+    }
+  };
+
+  const fetchOrganization = async (orgId?: string | null) => {
+    if (!orgId) {
+      const emptyOrg = createEmptyOrganization();
+      setOrganization(emptyOrg);
+      setOriginalOrg(emptyOrg);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('organizations')
@@ -183,8 +309,14 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const fetchUsers = async (orgId: string) => {
+  const fetchUsers = async (orgId?: string | null) => {
     setIsLoadingUsers(true);
+    if (!orgId) {
+      setUsers([]);
+      setIsLoadingUsers(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('users')
@@ -289,6 +421,7 @@ const SettingsPage: React.FC = () => {
       if (error) throw error;
       setOriginalOrg(organization);
       setHasOrgChanges(false);
+      onOrganizationUpdated?.();
     } catch (error) {
       console.error('Error saving organization:', error);
     } finally {
@@ -297,7 +430,7 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleInviteUser = async () => {
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim() || !organization.id) return;
     setIsInviting(true);
     try {
       const { data: existingUser } = await supabase
@@ -405,9 +538,24 @@ const SettingsPage: React.FC = () => {
     setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleUpgradePlan = async (planId: string) => {
+    setBillingError(null);
+    setIsCheckoutStarting(true);
+    try {
+      setSelectedPlanId(planId);
+      const url = await startCheckoutSession(planId);
+      window.location.href = url;
+    } catch (error) {
+      setBillingError(error instanceof Error ? error.message : 'Unable to start checkout');
+    } finally {
+      setIsCheckoutStarting(false);
+    }
+  };
+
   const tabs = [
     { id: 'profile' as Tab, label: 'Organization', icon: Building2 },
     { id: 'users' as Tab, label: 'Team Members', icon: Users },
+    { id: 'billing' as Tab, label: 'Billing', icon: CreditCard },
     { id: 'notifications' as Tab, label: 'Notifications', icon: Bell },
     { id: 'appearance' as Tab, label: 'Appearance', icon: Palette },
   ];
@@ -445,6 +593,10 @@ const SettingsPage: React.FC = () => {
   };
 
   const canManageUsers = currentUserRole === 'admin' || currentUserRole === 'manager';
+  const billingSummary = billingSnapshot.summary;
+  const billingHistoryToRender = hasRealHistory ? billingSnapshot.history : mockBillingHistory;
+  const activeSeatCount = users.filter((user) => user.is_active).length;
+  const selectedPlan = planOptions.find((plan) => plan.id === selectedPlanId) || planOptions[0];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/20 to-fuchsia-50/20 dark:from-slate-950 dark:via-indigo-950/20 dark:to-fuchsia-950/20 pt-24">
@@ -594,6 +746,200 @@ const SettingsPage: React.FC = () => {
                       </GlassCard>
                     ))
                   )}
+                </motion.div>
+              )}
+
+              {activeTab === 'billing' && (
+                <motion.div key="billing" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-5">
+                  {billingSuccess && (
+                    <GlassCard padding="md" className="border border-emerald-200 bg-emerald-50/70 text-emerald-800 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="w-5 h-5" />
+                        <p className="font-medium">{billingSuccess}</p>
+                      </div>
+                      <GlassButton variant="ghost" size="sm" onClick={() => setBillingSuccess(null)}>Dismiss</GlassButton>
+                    </GlassCard>
+                  )}
+
+                  {billingError && (
+                    <GlassCard padding="md" className="border border-rose-200 bg-rose-50/80 text-rose-700 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5" />
+                        <p className="font-medium">{billingError}</p>
+                      </div>
+                      <GlassButton variant="ghost" size="sm" onClick={() => setBillingError(null)}>Dismiss</GlassButton>
+                    </GlassCard>
+                  )}
+
+                  <GlassCard padding="xl">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Current plan</p>
+                        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mt-1">
+                          {billingSummary?.planName || 'Trial'}
+                        </h2>
+                        <div className="flex items-center gap-3 mt-3">
+                          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusStyles((billingSummary?.status || 'trialing') as SubscriptionStatus)}`}>
+                            {getStatusLabel((billingSummary?.status || 'trialing') as SubscriptionStatus)}
+                          </span>
+                          <span className="text-sm text-slate-500 capitalize">
+                            {billingSummary?.planInterval || 'monthly'} plan
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <GlassButton
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<RefreshCw className="w-4 h-4" />}
+                          onClick={refreshBillingSnapshot}
+                          disabled={isBillingLoading}
+                        >
+                          Refresh
+                        </GlassButton>
+                      </div>
+                    </div>
+
+                    {isBillingLoading ? (
+                      <div className="py-10 text-center">
+                        <Loader2 className="w-8 h-8 animate-spin text-slate-400 mx-auto mb-3" />
+                        <p className="text-slate-500">Loading billing details…</p>
+                      </div>
+                    ) : billingSummary ? (
+                      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                          <p className="text-sm text-slate-500">Seat usage</p>
+                          <p className="text-2xl font-semibold text-slate-900 mt-1">
+                            {activeSeatCount}/{billingSummary.seatLimit}
+                          </p>
+                          <div className="mt-3 h-2 rounded-full bg-slate-200">
+                            <div
+                              className="h-2 rounded-full bg-indigo-500"
+                              style={{ width: `${Math.min(100, (activeSeatCount / (billingSummary.seatLimit || 1)) * 100)}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-slate-500 mt-2">Invite up to {billingSummary.seatLimit} team members.</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500">Next milestone</p>
+                          <p className="text-2xl font-semibold text-slate-900 mt-1">
+                            {billingSummary.status === 'trialing'
+                              ? formatDate(billingSummary.trialEndsAt)
+                              : formatDate(billingSummary.currentPeriodEnd)}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-2">
+                            {billingSummary.status === 'trialing' ? 'Trial ends' : 'Renews on this date'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500">Monthly cost</p>
+                          <p className="text-2xl font-semibold text-slate-900 mt-1">
+                            {billingSummary.amount
+                              ? formatCurrency(billingSummary.amount)
+                              : billingSummary.status === 'trialing'
+                                ? '$0.00'
+                                : formatCurrency(selectedPlan?.price ? selectedPlan.price * 100 : undefined)}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-2">Billed via Stripe</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-6 text-slate-500">No billing information found. Connect Stripe to start accepting payments.</p>
+                    )}
+                  </GlassCard>
+
+                  <GlassCard padding="xl">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Plan options</h3>
+                        <p className="text-sm text-slate-500">Upgrade or downgrade anytime</p>
+                      </div>
+                      <GlassBadge variant="default">Stripe Checkout</GlassBadge>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {planOptions.map((plan) => {
+                        const isCurrent = billingSummary?.planId === plan.id || (billingSummary?.planName?.toLowerCase().includes(plan.tier));
+                        return (
+                          <div
+                            key={plan.id}
+                            className={`rounded-2xl border p-5 flex flex-col ${isCurrent ? 'border-indigo-400 bg-indigo-50/40 dark:bg-indigo-900/10' : 'border-slate-200 dark:border-slate-700'}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{plan.tier}</p>
+                                <h4 className="text-xl font-semibold text-slate-900">{plan.name}</h4>
+                              </div>
+                              <GlassBadge variant={plan.highlight ? 'primary' : 'default'}>{plan.interval}</GlassBadge>
+                            </div>
+                            <div className="mt-4">
+                              <p className="text-3xl font-bold text-slate-900">${plan.price.toLocaleString('en-AU')}</p>
+                              <p className="text-sm text-slate-500">{plan.priceSuffix}</p>
+                              <p className="text-xs text-slate-500 mt-1">Up to {plan.seatLimit} seats</p>
+                            </div>
+                            <ul className="mt-4 space-y-2 text-sm text-slate-600">
+                              {plan.features.map((feature) => (
+                                <li key={feature} className="flex items-start gap-2">
+                                  <Check className="w-4 h-4 text-emerald-500 mt-0.5" />
+                                  {feature}
+                                </li>
+                              ))}
+                            </ul>
+                            <GlassButton
+                              className="mt-5"
+                              variant={plan.highlight ? 'primary' : 'secondary'}
+                              disabled={isCurrent || isCheckoutStarting}
+                              loading={isCheckoutStarting && selectedPlanId === plan.id}
+                              onClick={() => handleUpgradePlan(plan.id)}
+                            >
+                              {isCurrent ? 'Current plan' : plan.price > ((billingSummary?.amount || 0) / 100) ? 'Upgrade' : 'Switch plan'}
+                            </GlassButton>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </GlassCard>
+
+                  <GlassCard padding="xl">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Billing history</h3>
+                        <p className="text-sm text-slate-500">Invoices and subscription events</p>
+                      </div>
+                      {!hasRealHistory && <GlassBadge variant="default">Sample data</GlassBadge>}
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-slate-700">
+                            <th className="text-left py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Date</th>
+                            <th className="text-left py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Plan</th>
+                            <th className="text-left py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Status</th>
+                            <th className="text-right py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {billingHistoryToRender.map((entry) => (
+                            <tr key={entry.id} className="border-b border-slate-100 dark:border-slate-800">
+                              <td className="py-3 text-sm text-slate-600">{formatDate(entry.created_at)}</td>
+                              <td className="py-3 text-sm text-slate-700 font-medium">{entry.planName}</td>
+                              <td className="py-3">
+                                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusStyles(entry.status as SubscriptionStatus)}`}>
+                                  {getStatusLabel(entry.status as SubscriptionStatus)}
+                                </span>
+                              </td>
+                              <td className="py-3 text-sm text-right text-slate-900">{formatCurrency(entry.amount)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {!hasRealHistory && (
+                      <p className="text-xs text-slate-500 mt-3 flex items-center gap-2">
+                        <Receipt className="w-4 h-4" />
+                        Real invoices will appear here once Stripe payments are enabled.
+                      </p>
+                    )}
+                  </GlassCard>
                 </motion.div>
               )}
 

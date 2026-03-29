@@ -103,13 +103,13 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
     if (validFiles.length > 0) {
       if (multiple) {
         setSelectedFiles(prev => [...prev, ...validFiles]);
-        onFilesSelected([...selectedFiles, ...validFiles]);
+        onFilesSelected(validFiles);
       } else {
         setSelectedFiles(validFiles);
         onFilesSelected(validFiles);
       }
     }
-  }, [multiple, onFilesSelected, selectedFiles]);
+  }, [multiple, onFilesSelected]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -137,7 +137,6 @@ const FileUploadZone: React.FC<FileUploadZoneProps> = ({
   const removeFile = (index: number) => {
     const newFiles = selectedFiles.filter((_, i) => i !== index);
     setSelectedFiles(newFiles);
-    onFilesSelected(newFiles);
   };
 
   return (

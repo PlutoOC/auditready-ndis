@@ -15,7 +15,7 @@ import { GlassBadge } from '@/components/glass/GlassBadge';
 import { DashboardWidgets } from '@/components/dashboard/DashboardWidgets';
 import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
 import { supabase } from '@/lib/supabase';
-import { exportModuleToPDF, downloadBlob } from '@/services/exportService';
+import { exportToPDF, downloadBlob } from '@/services/exportService';
 
 interface DashboardStats {
   totalModules: number;
@@ -332,28 +332,26 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               variant="secondary"
               leftIcon={<Download className="w-4 h-4" />}
               onClick={async () => {
-                // Get current org from state or fetch it
-                const { data: userData } = await supabase.auth.getUser();
-                if (!userData.user) return;
-                
-                const { data: orgData } = await supabase
-                  .from('organizations')
-                  .select('id')
-                  .eq('owner_id', userData.user.id)
-                  .order('created_at', { ascending: false })
-                  .maybeSingle();
-                  
-                if (!orgData?.id) return;
-                
                 try {
-                  const blob = await exportModuleToPDF(orgData.id, 'CORE');
-                  downloadBlob(blob, `audit-report-CORE-${new Date().toISOString().split('T')[0]}.html`);
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (!user) return;
+
+                  const { data: profile, error: profileError } = await supabase
+                    .from('users')
+                    .select('org_id')
+                    .eq('id', user.id)
+                    .single();
+
+                  if (profileError || !profile?.org_id) return;
+
+                  const blob = await exportToPDF(profile.org_id);
+                  downloadBlob(blob, `auditready-compliance-report-${new Date().toISOString().split('T')[0]}.pdf`);
                 } catch (error) {
                   console.error('Export failed:', error);
                 }
               }}
             >
-              Export Report
+              Export Compliance PDF
             </GlassButton>
           </div>
         </motion.div>

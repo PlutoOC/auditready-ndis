@@ -10,9 +10,10 @@ import { Sparkles, ArrowRight } from 'lucide-react';
 interface LandingPageProps {
   onGetStarted: () => void;
   onSignIn: () => void;
+  onViewPricing: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onViewPricing }) => {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
@@ -30,6 +31,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn }) => 
               <span className="text-xl font-bold text-slate-900">AuditReady NDIS</span>
             </div>
             <div className="flex items-center gap-4">
+              <button
+                onClick={onViewPricing}
+                className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+              >
+                Pricing
+              </button>
               <button
                 onClick={onSignIn}
                 className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
